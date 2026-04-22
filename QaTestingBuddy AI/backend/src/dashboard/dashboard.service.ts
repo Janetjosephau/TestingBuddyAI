@@ -1,98 +1,47 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../database/prisma.service';
+// import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
 export class DashboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  // constructor(private readonly prisma: PrismaService) {}
 
   async getMetrics() {
-    // Get test plan count
-    const totalTestPlans = await this.prisma.testPlan.count();
-
-    // Get test case count
-    const totalTestCases = await this.prisma.testCase.count();
-
-    // Get today's generated count (mock for now)
-    const generatedToday = await this.prisma.testPlan.count({
-      where: {
-        generatedAt: {
-          gte: new Date(new Date().setHours(0, 0, 0, 0)),
-        },
-      },
-    });
-
-    // Mock synced counts (would need to track this in real implementation)
-    const syncedToJira = await this.prisma.testPlan.count({
-      where: { status: 'synced_to_jira' },
-    });
-
-    const syncedToRally = await this.prisma.testCase.count({
-      where: { status: 'synced_to_rally' },
-    });
-
-    // Calculate coverage (mock calculation)
-    const coverage = {
-      manual: 65,
-      automated: 35,
-      coverage_percentage: 78,
-    };
-
+    // Mock data for demonstration
     return {
-      totalTestPlans,
-      totalTestCases,
-      generatedToday,
-      syncedToJira,
-      syncedToRally,
-      coverage,
+      totalTestPlans: 5,
+      totalTestCases: 25,
+      generatedToday: 2,
+      syncedToJira: 3,
+      syncedToRally: 1,
+      coverage: {
+        manual: 65,
+        automated: 35,
+        coverage_percentage: 78,
+      },
     };
   }
 
   async getActivity() {
-    // Get recent test plans and test cases
-    const recentTestPlans = await this.prisma.testPlan.findMany({
-      take: 5,
-      orderBy: { generatedAt: 'desc' },
-      select: {
-        id: true,
-        name: true,
-        generatedAt: true,
-        status: true,
+    // Mock activity data
+    return [
+      {
+        type: 'test_plan_generated',
+        title: 'Generated test plan: User Authentication',
+        timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+        status: 'success',
       },
-    });
-
-    const recentTestCases = await this.prisma.testCase.findMany({
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        title: true,
-        createdAt: true,
-        status: true,
-        testPlan: {
-          select: { name: true },
-        },
+      {
+        type: 'test_case_generated',
+        title: 'Created test case: Login validation',
+        timestamp: new Date(Date.now() - 1000 * 60 * 15), // 15 minutes ago
+        status: 'success',
       },
-    });
-
-    // Combine and format activities
-    const activities = [
-      ...recentTestPlans.map(plan => ({
-        type: 'test_plan_generated' as const,
-        title: `Generated test plan: ${plan.name}`,
-        timestamp: plan.generatedAt,
-        status: 'success' as const,
-      })),
-      ...recentTestCases.map(testCase => ({
-        type: 'test_case_generated' as const,
-        title: `Created test case: ${testCase.title}`,
-        timestamp: testCase.createdAt,
-        status: 'success' as const,
-      })),
+      {
+        type: 'test_plan_generated',
+        title: 'Generated test plan: Payment Processing',
+        timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+        status: 'success',
+      },
     ];
-
-    // Sort by timestamp and take most recent 10
-    return activities
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, 10);
   }
 }

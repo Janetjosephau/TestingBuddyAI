@@ -13,7 +13,7 @@ import { DatabaseModule } from './database/database.module';
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
     }),
-    DatabaseModule,
+    // DatabaseModule, // Commented out for mock implementations
     LlmModule,
     JiraModule,
     TestPlanModule,

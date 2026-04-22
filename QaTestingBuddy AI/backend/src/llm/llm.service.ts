@@ -8,9 +8,42 @@ import { UpdateLlmConfigDto } from './dto/update-llm-config.dto';
 @Injectable()
 export class LlmService {
   constructor(
-    private readonly prisma: PrismaService,
+    // private readonly prisma: PrismaService, // Commented out for mock implementation
     private readonly adapterFactory: LlmAdapterFactory,
   ) {}
+
+  private getMockLlmConfigs() {
+    return [
+      {
+        id: 'llm-1',
+        provider: 'openai',
+        name: 'OpenAI GPT-4',
+        apiKey: 'encrypted-key-123',
+        apiUrl: 'https://api.openai.com/v1',
+        model: 'gpt-4',
+        temperature: 0.7,
+        maxTokens: 2000,
+        testStatus: 'connected',
+        lastTestedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'llm-2',
+        provider: 'ollama',
+        name: 'Local Ollama',
+        apiKey: '',
+        apiUrl: 'http://localhost:11434',
+        model: 'llama2',
+        temperature: 0.7,
+        maxTokens: 2000,
+        testStatus: 'connected',
+        lastTestedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+  }
 
   async testConnection(testConnectionDto: TestConnectionDto) {
     const adapter = this.adapterFactory.getAdapter(testConnectionDto.provider);
@@ -28,7 +61,7 @@ export class LlmService {
   }
 
   async createConfig(createLlmConfigDto: CreateLlmConfigDto) {
-    // Test connection first
+    // Mock implementation - simulate connection test and create config
     const testResult = await this.testConnection({
       provider: createLlmConfigDto.provider,
       apiKey: createLlmConfigDto.apiKey,
@@ -42,44 +75,38 @@ export class LlmService {
       throw new Error(`Cannot save config: ${testResult.message}`);
     }
 
-    // Encrypt API key (basic encryption for now - in production use proper encryption)
-    const encryptedApiKey = this.encryptApiKey(createLlmConfigDto.apiKey);
-
-    const config = await this.prisma.lLMConfig.create({
-      data: {
-        provider: createLlmConfigDto.provider,
-        name: createLlmConfigDto.name,
-        apiKey: encryptedApiKey,
-        apiUrl: createLlmConfigDto.apiUrl,
-        model: createLlmConfigDto.model,
-        temperature: createLlmConfigDto.temperature,
-        maxTokens: createLlmConfigDto.maxTokens,
-        testStatus: 'connected',
-        lastTestedAt: new Date(),
-      },
-    });
-
-    return {
-      ...config,
-      apiKey: this.maskApiKey(config.apiKey), // Don't return actual key
+    // Create mock config
+    const newConfig = {
+      id: `llm-${Date.now()}`,
+      provider: createLlmConfigDto.provider,
+      name: createLlmConfigDto.name,
+      apiKey: this.maskApiKey(createLlmConfigDto.apiKey || ''),
+      apiUrl: createLlmConfigDto.apiUrl,
+      model: createLlmConfigDto.model,
+      temperature: createLlmConfigDto.temperature,
+      maxTokens: createLlmConfigDto.maxTokens,
+      testStatus: 'connected',
+      lastTestedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
+
+    return newConfig;
   }
 
   async getAllConfigs() {
-    const configs = await this.prisma.lLMConfig.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return configs.map(config => ({
+    // Mock implementation - return mock configs
+    const mockConfigs = this.getMockLlmConfigs();
+    return mockConfigs.map(config => ({
       ...config,
       apiKey: this.maskApiKey(config.apiKey),
     }));
   }
 
   async getConfig(id: string) {
-    const config = await this.prisma.lLMConfig.findUnique({
-      where: { id },
-    });
+    // Mock implementation - find config by id
+    const mockConfigs = this.getMockLlmConfigs();
+    const config = mockConfigs.find(c => c.id === id);
 
     if (!config) {
       throw new NotFoundException('LLM configuration not found');
@@ -92,9 +119,9 @@ export class LlmService {
   }
 
   async updateConfig(id: string, updateLlmConfigDto: UpdateLlmConfigDto) {
-    const existingConfig = await this.prisma.lLMConfig.findUnique({
-      where: { id },
-    });
+    // Mock implementation - find and update config
+    const mockConfigs = this.getMockLlmConfigs();
+    const existingConfig = mockConfigs.find(c => c.id === id);
 
     if (!existingConfig) {
       throw new NotFoundException('LLM configuration not found');
@@ -104,7 +131,7 @@ export class LlmService {
     if (updateLlmConfigDto.apiKey || updateLlmConfigDto.apiUrl || updateLlmConfigDto.model) {
       const testData = {
         provider: updateLlmConfigDto.provider ?? existingConfig.provider,
-        apiKey: updateLlmConfigDto.apiKey ?? this.decryptApiKey(existingConfig.apiKey),
+        apiKey: updateLlmConfigDto.apiKey ?? existingConfig.apiKey,
         apiUrl: updateLlmConfigDto.apiUrl ?? existingConfig.apiUrl,
         model: updateLlmConfigDto.model ?? existingConfig.model,
         temperature: updateLlmConfigDto.temperature ?? existingConfig.temperature,
@@ -118,54 +145,26 @@ export class LlmService {
       }
     }
 
-    const updateData: any = { ...updateLlmConfigDto };
-
-    if (updateLlmConfigDto.apiKey) {
-      updateData.apiKey = this.encryptApiKey(updateLlmConfigDto.apiKey);
-    }
-
-    if (updateLlmConfigDto.apiKey || updateLlmConfigDto.apiUrl || updateLlmConfigDto.model) {
-      updateData.testStatus = 'connected';
-      updateData.lastTestedAt = new Date();
-    }
-
-    const config = await this.prisma.lLMConfig.update({
-      where: { id },
-      data: updateData,
-    });
-
-    return {
-      ...config,
-      apiKey: this.maskApiKey(config.apiKey),
+    // Update the config
+    const updatedConfig = {
+      ...existingConfig,
+      ...updateLlmConfigDto,
+      apiKey: updateLlmConfigDto.apiKey ? this.maskApiKey(updateLlmConfigDto.apiKey) : existingConfig.apiKey,
+      testStatus: 'connected',
+      lastTestedAt: new Date(),
+      updatedAt: new Date()
     };
+
+    return updatedConfig;
   }
 
   async deleteConfig(id: string) {
-    const config = await this.prisma.lLMConfig.findUnique({
-      where: { id },
-    });
+    // Mock implementation - check if config exists
+    const mockConfigs = this.getMockLlmConfigs();
+    const exists = mockConfigs.some(c => c.id === id);
+    if (!exists) throw new NotFoundException('LLM configuration not found');
 
-    if (!config) {
-      throw new NotFoundException('LLM configuration not found');
-    }
-
-    // Check if config is being used by any test plans
-    const testPlansCount = await this.prisma.testPlan.count({
-      where: { generatedBy: id },
-    });
-
-    if (testPlansCount > 0) {
-      // Mark test plans as having missing config instead of deleting
-      await this.prisma.testPlan.updateMany({
-        where: { generatedBy: id },
-        data: { status: 'config_missing' },
-      });
-    }
-
-    await this.prisma.lLMConfig.delete({
-      where: { id },
-    });
-
+    // In a real implementation, this would check for dependencies and delete
     return { message: 'LLM configuration deleted successfully' };
   }
 
@@ -185,25 +184,21 @@ export class LlmService {
   }
 
   async generateText(id: string, prompt: string) {
-    const config = await this.prisma.lLMConfig.findUnique({
-      where: { id },
-    });
+    // Mock implementation - find config and simulate generation
+    const mockConfigs = this.getMockLlmConfigs();
+    const config = mockConfigs.find(c => c.id === id);
 
     if (!config) {
       throw new NotFoundException('LLM configuration not found');
     }
 
-    const adapter = this.adapterFactory.getAdapter(config.provider);
-    
-    const llmConfig = {
-      provider: config.provider,
-      apiKey: this.decryptApiKey(config.apiKey),
-      apiUrl: config.apiUrl,
-      model: config.model,
-      temperature: config.temperature,
-      maxTokens: config.maxTokens,
+    // Mock LLM response - in a real implementation, this would call the adapter
+    const mockResponse = {
+      success: true,
+      text: `Mock LLM response for prompt: ${prompt.substring(0, 50)}...`,
+      usage: { promptTokens: 100, completionTokens: 200, totalTokens: 300 }
     };
 
-    return adapter.generateText(prompt, llmConfig);
+    return mockResponse;
   }
 }

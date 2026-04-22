@@ -7,7 +7,34 @@ import { CreateJiraConfigDto } from './dto/create-jira-config.dto';
 
 @Injectable()
 export class JiraService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(/* private readonly prisma: PrismaService */) {} // Commented out for mock implementation
+
+  private getMockJiraConfigs() {
+    return [
+      {
+        id: 'jira-1',
+        instanceUrl: 'https://company.atlassian.net',
+        email: 'test@example.com',
+        apiToken: 'encrypted-token-123',
+        projectKey: 'TEST',
+        testStatus: 'connected',
+        lastTestedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'jira-2',
+        instanceUrl: 'https://anothercompany.atlassian.net',
+        email: 'qa@example.com',
+        apiToken: 'encrypted-token-456',
+        projectKey: 'QA',
+        testStatus: 'connected',
+        lastTestedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+  }
 
   private createAuthHeader(email: string, apiToken: string): string {
     const auth = Buffer.from(`${email}:${apiToken}`).toString('base64');
@@ -180,6 +207,7 @@ export class JiraService {
   }
 
   async createConfig(createJiraConfigDto: CreateJiraConfigDto) {
+    // Mock implementation - simulate connection test and create config
     const testResult = await this.testConnection({
       instanceUrl: createJiraConfigDto.instanceUrl,
       email: createJiraConfigDto.email,
@@ -191,47 +219,50 @@ export class JiraService {
       throw new Error(`Cannot save config: ${testResult.message}`);
     }
 
-    const encryptedToken = this.encryptApiToken(createJiraConfigDto.apiToken);
+    // Create mock config
+    const newConfig = {
+      id: `jira-${Date.now()}`,
+      instanceUrl: createJiraConfigDto.instanceUrl,
+      email: createJiraConfigDto.email,
+      apiToken: this.maskApiToken(createJiraConfigDto.apiToken), // Masked for response
+      projectKey: createJiraConfigDto.projectKey,
+      testStatus: 'connected',
+      lastTestedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
 
-    const config = await this.prisma.jiraConfig.create({
-      data: {
-        instanceUrl: createJiraConfigDto.instanceUrl,
-        email: createJiraConfigDto.email,
-        apiToken: encryptedToken,
-        projectKey: createJiraConfigDto.projectKey,
-        testStatus: 'connected',
-        lastTestedAt: new Date(),
-      },
-    });
-
-    return { ...config, apiToken: this.maskApiToken(config.apiToken) };
+    return newConfig;
   }
 
   async getAllConfigs() {
-    const configs = await this.prisma.jiraConfig.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
-    return configs.map(config => ({
+    // Mock implementation - return mock configs
+    const mockConfigs = this.getMockJiraConfigs();
+    return mockConfigs.map(config => ({
       ...config,
       apiToken: this.maskApiToken(config.apiToken),
     }));
   }
 
   async getConfig(id: string) {
-    const config = await this.prisma.jiraConfig.findUnique({ where: { id } });
+    // Mock implementation - find config by id
+    const mockConfigs = this.getMockJiraConfigs();
+    const config = mockConfigs.find(c => c.id === id);
     if (!config) throw new NotFoundException('Jira configuration not found');
     return { ...config, apiToken: this.maskApiToken(config.apiToken) };
   }
 
   async updateConfig(id: string, updateJiraConfigDto: Partial<CreateJiraConfigDto>) {
-    const existingConfig = await this.prisma.jiraConfig.findUnique({ where: { id } });
+    // Mock implementation - find and update config
+    const mockConfigs = this.getMockJiraConfigs();
+    const existingConfig = mockConfigs.find(c => c.id === id);
     if (!existingConfig) throw new NotFoundException('Jira configuration not found');
 
     if (updateJiraConfigDto.apiToken || updateJiraConfigDto.instanceUrl || updateJiraConfigDto.email) {
       const testData = {
         instanceUrl: updateJiraConfigDto.instanceUrl ?? existingConfig.instanceUrl,
         email: updateJiraConfigDto.email ?? existingConfig.email,
-        apiToken: updateJiraConfigDto.apiToken ?? this.decryptApiToken(existingConfig.apiToken),
+        apiToken: updateJiraConfigDto.apiToken ?? existingConfig.apiToken,
         projectKey: updateJiraConfigDto.projectKey ?? existingConfig.projectKey,
       };
 
@@ -241,29 +272,26 @@ export class JiraService {
       }
     }
 
-    const updateData: any = { ...updateJiraConfigDto };
-    if (updateJiraConfigDto.apiToken) {
-      updateData.apiToken = this.encryptApiToken(updateJiraConfigDto.apiToken);
-    }
-    
-    if (updateJiraConfigDto.apiToken || updateJiraConfigDto.instanceUrl || updateJiraConfigDto.email) {
-       updateData.testStatus = 'connected';
-       updateData.lastTestedAt = new Date();
-    }
+    // Update the config
+    const updatedConfig = {
+      ...existingConfig,
+      ...updateJiraConfigDto,
+      apiToken: updateJiraConfigDto.apiToken ? this.maskApiToken(updateJiraConfigDto.apiToken) : existingConfig.apiToken,
+      testStatus: 'connected',
+      lastTestedAt: new Date(),
+      updatedAt: new Date()
+    };
 
-    const config = await this.prisma.jiraConfig.update({
-      where: { id },
-      data: updateData,
-    });
-
-    return { ...config, apiToken: this.maskApiToken(config.apiToken) };
+    return updatedConfig;
   }
 
   async deleteConfig(id: string) {
-    const config = await this.prisma.jiraConfig.findUnique({ where: { id } });
-    if (!config) throw new NotFoundException('Jira configuration not found');
+    // Mock implementation - check if config exists
+    const mockConfigs = this.getMockJiraConfigs();
+    const exists = mockConfigs.some(c => c.id === id);
+    if (!exists) throw new NotFoundException('Jira configuration not found');
 
-    await this.prisma.jiraConfig.delete({ where: { id } });
+    // In a real implementation, this would be deleted from database
     return { message: 'Jira configuration deleted successfully' };
   }
-}
+}

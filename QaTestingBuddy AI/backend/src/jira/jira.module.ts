@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { JiraController } from './jira.controller';
 import { JiraService } from './jira.service';
-import { DatabaseModule } from '../database/database.module';
+// import { DatabaseModule } from '../database/database.module';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [], // DatabaseModule commented out for mock implementations
   controllers: [JiraController],
   providers: [JiraService],
   exports: [JiraService],

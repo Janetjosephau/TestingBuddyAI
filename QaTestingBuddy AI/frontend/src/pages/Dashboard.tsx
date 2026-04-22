@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { FileText, Zap, TrendingUp, RefreshCw, Clock, AlertCircle } from 'lucide-react'
+import { toast } from 'react-hot-toast'
 import MetricCard from '../components/MetricCard'
 import ActivityFeed from '../components/ActivityFeed'
+import { dashboardApi } from '../services/api'
 
 interface Metric {
   label: string
@@ -77,21 +79,99 @@ const Dashboard: React.FC = () => {
     }
   ])
 
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Simulate API call to fetch dashboard data
-    setLoading(true)
-    // TODO: Replace with actual API call
-    // const fetchDashboard = async () => {
-    //   const response = await fetch('/api/dashboard/metrics')
-    //   const data = await response.json()
-    //   setMetrics(data.metrics)
-    //   setActivities(data.activities)
-    //   setLoading(false)
-    // }
-    // fetchDashboard()
-    setTimeout(() => setLoading(false), 500)
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+
+        // Fetch metrics and activity data in parallel
+        const [metricsResponse, activityResponse] = await Promise.all([
+          dashboardApi.getMetrics(),
+          dashboardApi.getActivity()
+        ])
+
+        // Transform metrics data
+        const metricsData = metricsResponse.data
+        const transformedMetrics: Metric[] = [
+          {
+            label: 'Test Plans',
+            value: metricsData.testPlans || 0,
+            icon: <FileText size={24} />,
+            color: 'bg-blue-500',
+            trend: metricsData.testPlansTrend || 0
+          },
+          {
+            label: 'Test Cases',
+            value: metricsData.testCases || 0,
+            icon: <Zap size={24} />,
+            color: 'bg-purple-500',
+            trend: metricsData.testCasesTrend || 0
+          },
+          {
+            label: 'Coverage %',
+            value: metricsData.coverage || 0,
+            icon: <TrendingUp size={24} />,
+            color: 'bg-green-500',
+            trend: metricsData.coverageTrend || 0
+          },
+          {
+            label: 'Synced to Jira',
+            value: metricsData.syncedToJira || 0,
+            icon: <RefreshCw size={24} />,
+            color: 'bg-orange-500',
+            trend: metricsData.syncedTrend || 0
+          }
+        ]
+
+        setMetrics(transformedMetrics)
+        setActivities(activityResponse.data.activities || [])
+
+      } catch (err) {
+        console.error('Failed to fetch dashboard data:', err)
+        setError('Failed to load dashboard data. Using sample data.')
+        toast.error('Failed to load dashboard data')
+
+        // Keep the existing mock data as fallback
+        setMetrics([
+          {
+            label: 'Test Plans',
+            value: 12,
+            icon: <FileText size={24} />,
+            color: 'bg-blue-500',
+            trend: 3
+          },
+          {
+            label: 'Test Cases',
+            value: 89,
+            icon: <Zap size={24} />,
+            color: 'bg-purple-500',
+            trend: 15
+          },
+          {
+            label: 'Coverage %',
+            value: 76,
+            icon: <TrendingUp size={24} />,
+            color: 'bg-green-500',
+            trend: 5
+          },
+          {
+            label: 'Synced to Jira',
+            value: 45,
+            icon: <RefreshCw size={24} />,
+            color: 'bg-orange-500',
+            trend: 8
+          }
+        ])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDashboardData()
   }, [])
 
   return (
@@ -100,9 +180,20 @@ const Dashboard: React.FC = () => {
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-600 mt-2">Welcome back! Here's your testing overview.</p>
+        {error && (
+          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center">
+            <AlertCircle size={20} className="text-yellow-600 mr-2" />
+            <span className="text-yellow-800">{error}</span>
+          </div>
+        )}
       </div>
 
-      {/* Metrics Grid */}
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600">Loading dashboard data...</span>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {metrics.map((metric, index) => (
           <MetricCard key={index} {...metric} />
