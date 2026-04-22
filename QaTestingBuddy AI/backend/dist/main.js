@@ -20,7 +20,7 @@ async function bootstrap() {
         transform: true,
     }));
     app.setGlobalPrefix('api');
-    const port = process.env.PORT || 3001;
+    const port = process.env.PORT || 3000;
     await app.listen(port);
     console.log(`🚀 Testing Buddy AI Backend running on: http://localhost:${port}/api`);
     console.log(`📚 API Documentation: http://localhost:${port}/api/docs`);

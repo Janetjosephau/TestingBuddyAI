@@ -10,11 +10,14 @@ exports.TestPlanModule = void 0;
 const common_1 = require("@nestjs/common");
 const test_plan_controller_1 = require("./test-plan.controller");
 const test_plan_service_1 = require("./test-plan.service");
+const database_module_1 = require("../database/database.module");
+const llm_module_1 = require("../llm/llm.module");
 let TestPlanModule = class TestPlanModule {
 };
 exports.TestPlanModule = TestPlanModule;
 exports.TestPlanModule = TestPlanModule = __decorate([
     (0, common_1.Module)({
+        imports: [database_module_1.DatabaseModule, llm_module_1.LlmModule],
         controllers: [test_plan_controller_1.TestPlanController],
         providers: [test_plan_service_1.TestPlanService],
         exports: [test_plan_service_1.TestPlanService],

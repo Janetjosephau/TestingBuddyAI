@@ -3,8 +3,10 @@ import { TestCaseController } from './test-case.controller';
 import { TestCaseService } from './test-case.service';
 import { LlmModule } from '../llm/llm.module';
 
+import { DatabaseModule } from '../database/database.module';
+
 @Module({
-  imports: [LlmModule],
+  imports: [LlmModule, DatabaseModule],
   controllers: [TestCaseController],
   providers: [TestCaseService],
   exports: [TestCaseService],

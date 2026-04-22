@@ -11,12 +11,13 @@ const common_1 = require("@nestjs/common");
 const test_case_controller_1 = require("./test-case.controller");
 const test_case_service_1 = require("./test-case.service");
 const llm_module_1 = require("../llm/llm.module");
+const database_module_1 = require("../database/database.module");
 let TestCaseModule = class TestCaseModule {
 };
 exports.TestCaseModule = TestCaseModule;
 exports.TestCaseModule = TestCaseModule = __decorate([
     (0, common_1.Module)({
-        imports: [llm_module_1.LlmModule],
+        imports: [llm_module_1.LlmModule, database_module_1.DatabaseModule],
         controllers: [test_case_controller_1.TestCaseController],
         providers: [test_case_service_1.TestCaseService],
         exports: [test_case_service_1.TestCaseService],

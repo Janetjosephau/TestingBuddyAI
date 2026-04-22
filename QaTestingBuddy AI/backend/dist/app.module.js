@@ -14,7 +14,6 @@ const jira_module_1 = require("./jira/jira.module");
 const test_plan_module_1 = require("./test-plan/test-plan.module");
 const test_case_module_1 = require("./test-case/test-case.module");
 const dashboard_module_1 = require("./dashboard/dashboard.module");
-const database_module_1 = require("./database/database.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -25,7 +24,6 @@ exports.AppModule = AppModule = __decorate([
                 isGlobal: true,
                 envFilePath: ['.env.local', '.env'],
             }),
-            database_module_1.DatabaseModule,
             llm_module_1.LlmModule,
             jira_module_1.JiraModule,
             test_plan_module_1.TestPlanModule,
