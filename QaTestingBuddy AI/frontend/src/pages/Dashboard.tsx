@@ -113,7 +113,7 @@ const Dashboard: React.FC = () => {
           },
           {
             label: 'Coverage %',
-            value: metricsData.coverage || 0,
+            value: metricsData.coverage?.coverage_percentage || 0,
             icon: <TrendingUp size={24} />,
             color: 'bg-green-500',
             trend: metricsData.coverageTrend || 0
