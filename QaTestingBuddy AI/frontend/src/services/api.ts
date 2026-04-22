@@ -47,4 +47,10 @@ export const dashboardApi = {
   getActivity: () => api.get('/dashboard/activity'),
 };
 
+export const generatorApi = {
+  getTestPlans: () => testPlanApi.getAll(),
+  generateTestPlan: (data: any) => testPlanApi.generate(data),
+  generateTestCases: (data: any) => testCaseApi.generate(data),
+};
+
 export default api;
