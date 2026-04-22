@@ -194,7 +194,8 @@ const Dashboard: React.FC = () => {
           <span className="ml-3 text-gray-600">Loading dashboard data...</span>
         </div>
       ) : (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {metrics.map((metric, index) => (
           <MetricCard key={index} {...metric} />
         ))}
@@ -272,8 +273,10 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
       </div>
-    </div>
-  )
+    </>
+  )}
+</div>
+)
 }
 
 export default Dashboard
