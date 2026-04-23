@@ -204,17 +204,17 @@ const TestCaseGenerator: React.FC = () => {
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-2xl overflow-hidden min-h-[700px] flex flex-col">
           
           {/* Header */}
-          <div className="bg-slate-900 p-8 text-white flex items-center justify-between">
+          <div className="bg-white p-8 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center">
                 <Zap size={28} className="text-white fill-current" />
               </div>
               <div>
-                <h1 className="text-2xl font-black tracking-tight">Intelligent Test case generating Agent</h1>
-                <p className="text-slate-400 text-sm font-medium">Draft, review, and sync test cases with AI precision.</p>
+                <h1 className="text-2xl font-black tracking-tight text-slate-900">Intelligent Test case generating Agent</h1>
+                <p className="text-slate-500 text-sm font-medium">Draft, review, and sync test cases with AI precision.</p>
               </div>
             </div>
-            <div className="flex items-center space-x-2 bg-slate-800 p-1 rounded-xl border border-slate-700">
+            <div className="flex items-center space-x-2 bg-slate-50 p-1 rounded-xl border border-slate-100">
                {['fetch', 'generate', 'review', 'upload'].map((tab, idx) => (
                  <button 
                   key={tab}
@@ -316,7 +316,7 @@ const TestCaseGenerator: React.FC = () => {
                   <button 
                     onClick={handleFetchRequirements}
                     disabled={fetching}
-                    className="px-12 h-14 bg-slate-900 text-white rounded-xl font-black hover:bg-slate-800 transition-all flex items-center space-x-3 shadow-xl"
+                    className="px-12 h-14 bg-emerald-500 text-white rounded-xl font-black hover:bg-emerald-600 transition-all flex items-center space-x-3 shadow-xl shadow-emerald-100"
                   >
                     {fetching ? <RefreshCw className="animate-spin" size={20} /> : <Search size={20} />}
                     <span>Fetch Requirements</span>
