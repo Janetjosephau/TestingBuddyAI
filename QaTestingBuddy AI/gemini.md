@@ -8,12 +8,12 @@
 
 ## 📋 Project Overview
 
-**North Star Goal:** Build a comprehensive Testing Buddy AI Dashboard that generates test plans and test cases by integrating with LLM providers and Jira, with reporting & analytics capabilities.
+**North Star Goal:** Build a comprehensive Testing Buddy AI Dashboard that generates test plans and test cases by integrating with LLM providers and Rally, with reporting & analytics capabilities.
 
 **Core Modules:**
 1. Dashboard (Insights & Metrics)
 2. LLM Configuration
-3. Jira Integration
+3. Rally Integration
 4. Test Plan Generator
 5. Test Case Generator
 6. Reports & Analytics
@@ -24,10 +24,10 @@
 
 | Question | Answer |
 |----------|--------|
-| **North Star** | Generate test plans/cases via AI → Display in dashboard → Sync to Jira & Rally |
-| **Integrations Ready** | Jira, LLM providers (configurable), TestLink/Rally |
-| **Source of Truth** | Jira (requirements/tickets) + Generated artifacts (PostgreSQL) |
-| **Delivery Payload** | UI display + Jira/Rally sync + PDF/JSON export |
+| **North Star** | Generate test plans/cases via AI → Display in dashboard → Sync to Rally |
+| **Integrations Ready** | Rally, LLM providers (configurable), TestLink |
+| **Source of Truth** | Rally (requirements/stories) + Generated artifacts (PostgreSQL) |
+| **Delivery Payload** | UI display + Rally sync + PDF/JSON export |
 | **Behavioral Rules** | Prevent duplicates; graceful error handling; auto-retry on sync failure |
 
 ---

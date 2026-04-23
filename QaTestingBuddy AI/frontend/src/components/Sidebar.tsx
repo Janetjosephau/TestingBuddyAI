@@ -24,7 +24,7 @@ const Sidebar: React.FC = () => {
     <>
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-blue-600 text-white rounded-lg shadow-lg"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-emerald-600 text-white rounded-lg shadow-lg"
       >
         {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
@@ -36,12 +36,12 @@ const Sidebar: React.FC = () => {
       >
         {/* Logo Section */}
         <div className="p-8 pb-4 flex items-center space-x-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-xl font-bold italic">
+          <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-xl font-bold italic shadow-lg shadow-emerald-500/20">
             TB
           </div>
           <div>
             <h1 className="text-xl font-black tracking-tight leading-4">TestingBuddy</h1>
-            <p className="text-[10px] text-blue-400 font-bold tracking-widest uppercase mt-1">AI DASHBOARD</p>
+            <p className="text-[10px] text-emerald-400 font-bold tracking-widest uppercase mt-1">AI DASHBOARD</p>
           </div>
         </div>
 
@@ -55,10 +55,10 @@ const Sidebar: React.FC = () => {
                 <Link
                   to="/"
                   className={`flex items-center space-x-3 transition-all duration-200 ${
-                    isActive('/') ? 'text-blue-500' : 'text-slate-400 hover:text-white'
+                    isActive('/') ? 'text-emerald-500' : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  <Home size={22} className={isActive('/') ? 'fill-blue-500/10' : ''} />
+                  <Home size={22} className={isActive('/') ? 'fill-emerald-500/10' : ''} />
                   <span className="font-bold">Dashboard</span>
                 </Link>
               </li>
@@ -66,10 +66,10 @@ const Sidebar: React.FC = () => {
                 <Link
                   to="/connections/llm"
                   className={`flex items-center space-x-3 transition-all duration-200 ${
-                    isActive('/connections/llm') ? 'text-blue-500' : 'text-slate-400 hover:text-white'
+                    isActive('/connections/llm') ? 'text-emerald-500' : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  <Zap size={22} className={isActive('/connections/llm') ? 'fill-blue-500/10' : ''} />
+                  <Zap size={22} className={isActive('/connections/llm') ? 'fill-emerald-500/10' : ''} />
                   <span className="font-bold">LLM Configuration</span>
                 </Link>
               </li>
@@ -95,10 +95,10 @@ const Sidebar: React.FC = () => {
                 <Link
                   to="/generator/test-plan"
                   className={`flex items-center space-x-3 transition-all duration-200 ${
-                    isActive('/generator/test-plan') ? 'text-blue-500' : 'text-slate-400 hover:text-white'
+                    isActive('/generator/test-plan') ? 'text-emerald-500' : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  <FileText size={22} className={isActive('/generator/test-plan') ? 'fill-blue-500/10' : ''} />
+                  <FileText size={22} className={isActive('/generator/test-plan') ? 'fill-emerald-500/10' : ''} />
                   <span className="font-bold">Test Plan Generator</span>
                 </Link>
               </li>
@@ -106,10 +106,10 @@ const Sidebar: React.FC = () => {
                 <Link
                   to="/generator/test-case"
                   className={`flex items-center space-x-3 transition-all duration-200 ${
-                    isActive('/generator/test-case') ? 'text-blue-500' : 'text-slate-400 hover:text-white'
+                    isActive('/generator/test-case') ? 'text-emerald-500' : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  <FileCheck size={22} className={isActive('/generator/test-case') ? 'fill-blue-500/10' : ''} />
+                  <FileCheck size={22} className={isActive('/generator/test-case') ? 'fill-emerald-500/10' : ''} />
                   <span className="font-bold">Test Case Generator</span>
                 </Link>
               </li>

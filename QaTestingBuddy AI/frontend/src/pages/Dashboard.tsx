@@ -37,7 +37,7 @@ const Dashboard: React.FC = () => {
       {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-10 flex items-center space-x-8">
-          <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+          <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
             <FileText size={32} />
           </div>
           <div>
@@ -62,18 +62,18 @@ const Dashboard: React.FC = () => {
         <h2 className="text-2xl font-bold text-[#0f172a] mb-8">Recent Activity</h2>
         <div className="space-y-4">
           {[1, 2, 3].map((item) => (
-            <div key={item} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex items-center justify-between group hover:border-blue-200 transition-all">
+            <div key={item} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex items-center justify-between group hover:border-emerald-200 transition-all">
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-2">
-                  <h3 className="text-lg font-bold text-[#0f172a]">1 ticket(s) analyzed</h3>
+                  <h3 className="text-lg font-bold text-[#0f172a]">1 requirement(s) analyzed</h3>
                 </div>
                 <p className="text-slate-500 text-sm line-clamp-1">
-                  Test Plan 1. Objective The objective of this test plan is to ensure the qual...
+                  AI successfully generated a test plan based on Rally story US31488.
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  Apr 15, 2026, 12:15 PM
+                  Apr 23, 2026, 12:50 PM
                 </p>
               </div>
             </div>

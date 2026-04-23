@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { FileText, RefreshCw, Zap, Trash2, Download, ChevronDown } from 'lucide-react'
+import { FileText, RefreshCw, Zap, Trash2, Download } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { generatorApi, jiraApi, llmApi } from '../services/api'
+import { generatorApi, rallyApi, llmApi } from '../services/api'
 
 interface TestPlan {
   id: string
@@ -11,7 +11,7 @@ interface TestPlan {
   testCases?: number
 }
 
-interface JiraIssue {
+interface RallyStory {
   key: string
   title: string
   description: string
@@ -22,19 +22,17 @@ interface JiraIssue {
 
 const TestPlanGenerator: React.FC = () => {
   const [testPlans, setTestPlans] = useState<TestPlan[]>([])
-  const [jiraConfigs, setJiraConfigs] = useState<any[]>([])
   const [llmConfigs, setLlmConfigs] = useState<any[]>([])
-  const [selectedJiraConfigId, setSelectedJiraConfigId] = useState('')
   const [selectedLlmConfigId, setSelectedLlmConfigId] = useState('')
 
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [fetching, setFetching] = useState(false)
 
-  const [projectKey, setProjectKey] = useState('KAN')
+  const [projectKey, setProjectKey] = useState('')
   const [additionalContext, setAdditionalContext] = useState('')
-  const [fetchedIssues, setFetchedIssues] = useState<JiraIssue[]>([])
-  const [selectedIssue, setSelectedIssue] = useState<JiraIssue | null>(null)
+  const [fetchedIssues, setFetchedIssues] = useState<RallyStory[]>([])
+  const [selectedIssue, setSelectedIssue] = useState<RallyStory | null>(null)
   const [showGeneratedModal, setShowGeneratedModal] = useState(false)
   const [generatedContent, setGeneratedContent] = useState<any>(null)
 
@@ -45,13 +43,8 @@ const TestPlanGenerator: React.FC = () => {
 
   const loadPrerequisites = async () => {
     try {
-      const [jiraRes, llmRes] = await Promise.all([
-        jiraApi.getConfigs(),
-        llmApi.getConfigs()
-      ])
-      setJiraConfigs(jiraRes.data)
+      const llmRes = await llmApi.getConfigs()
       setLlmConfigs(llmRes.data)
-      if (jiraRes.data.length > 0) setSelectedJiraConfigId(jiraRes.data[0].id)
       if (llmRes.data.length > 0) setSelectedLlmConfigId(llmRes.data[0].id)
     } catch (e) {
       console.error(e)
@@ -68,30 +61,24 @@ const TestPlanGenerator: React.FC = () => {
   }
 
   const handleFetchDetails = async () => {
-    const activeJiraConfig = jiraConfigs[0]
-    if (!activeJiraConfig) {
-      toast.error('Please configure a JIRA connection first')
+    if (!projectKey.trim()) {
+      toast.error('Please enter a Rally ID (e.g. US30890)')
       return
     }
     setFetching(true)
     setFetchedIssues([])
     setSelectedIssue(null)
     try {
-      const res = await jiraApi.fetchRequirements({
-        instanceUrl: activeJiraConfig.instanceUrl,
-        email: activeJiraConfig.email,
-        apiToken: activeJiraConfig.apiToken,
-        projectKey: projectKey || activeJiraConfig.projectKey || 'KAN',
-      })
+      const res = await rallyApi.fetchRequirements(projectKey)
       if (res.data?.success && res.data.requirements?.length > 0) {
         setFetchedIssues(res.data.requirements)
         setSelectedIssue(res.data.requirements[0])
-        toast.success(`Fetched ${res.data.requirements.length} issues from JIRA`)
+        toast.success(`Fetched story from Rally`)
       } else {
-        toast.error('No issues found. Check your Project Key.')
+        toast.error('Story not found in Rally.')
       }
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Failed to fetch JIRA details')
+      toast.error(error?.response?.data?.message || 'Failed to fetch Rally details')
     } finally {
       setFetching(false)
     }
@@ -99,17 +86,18 @@ const TestPlanGenerator: React.FC = () => {
 
   const handleGenerateTestPlan = async () => {
     if (!additionalContext.trim() && !selectedIssue) {
-      toast.error('Please fetch a Jira issue or provide additional context')
+      toast.error('Please fetch a Rally story or provide additional context')
       return
     }
 
     setGenerating(true)
     try {
+      // In a more complex app, this might need a specific TestPlan endpoint
+      // For now, using the generatorApi.generateTestPlan
       const res = await generatorApi.generateTestPlan({
         jiraIssueId: selectedIssue?.key || 'MANUAL',
         jiraRequirement: selectedIssue ? JSON.stringify(selectedIssue) : undefined,
         llmConfigId: selectedLlmConfigId || llmConfigs[0]?.id,
-        jiraConfigId: selectedJiraConfigId || jiraConfigs[0]?.id,
         additionalRequirements: additionalContext ? [additionalContext] : undefined,
       })
 
@@ -118,7 +106,7 @@ const TestPlanGenerator: React.FC = () => {
       toast.success('Test Plan Generated Successfully!')
       await loadHistory()
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Failed to generate test plan. Please try again.')
+      toast.error(error?.response?.data?.message || 'Failed to generate test plan.')
     } finally {
       setGenerating(false)
     }
@@ -153,46 +141,44 @@ const TestPlanGenerator: React.FC = () => {
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden p-12">
           {/* Header */}
           <div className="flex items-center space-x-4 mb-10">
-            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+            <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
               <FileText size={28} />
             </div>
             <div>
               <h1 className="text-3xl font-black text-[#0f172a]">Test Plan Generator</h1>
-              <p className="text-slate-500 mt-1 font-medium">Fetch Jira stories and generate an AI-powered test plan.</p>
+              <p className="text-slate-500 mt-1 font-medium">Fetch Rally stories and generate an AI-powered test plan.</p>
             </div>
           </div>
 
           <div className="space-y-8">
-            {/* Jira Instance Display */}
+            {/* Rally Instance Display */}
             <div className="space-y-3">
-              <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Jira Instance</label>
+              <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Rally Connection</label>
               <div className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl flex items-center">
-                <span className="text-slate-700 font-bold">
-                  {jiraConfigs[0]?.instanceUrl || 'No JIRA connection configured — go to Connections > JIRA Connection'}
-                </span>
+                <span className="text-slate-700 font-bold">Connected to Enterprise Rally Workspace</span>
               </div>
             </div>
 
-            {/* Project Key Row */}
+            {/* Project/Workspace Context */}
             <div className="space-y-3">
-              <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Project Key</label>
+              <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Formatted ID (e.g. US30890)</label>
               <input
                 type="text"
                 value={projectKey}
                 onChange={(e) => setProjectKey(e.target.value.toUpperCase())}
-                placeholder="e.g., KAN"
-                className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-blue-500 focus:bg-white transition-all uppercase"
+                placeholder="e.g. US30890"
+                className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-emerald-500 focus:bg-white transition-all uppercase outline-none"
               />
             </div>
 
             {/* Additional Context */}
             <div className="space-y-3">
-              <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase text-blue-600">Additional Context (Optional)</label>
+              <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase text-emerald-600">Additional Context (Optional)</label>
               <textarea
                 placeholder="e.g. Create a small test plan covering the login and registration flows"
                 value={additionalContext}
                 onChange={(e) => setAdditionalContext(e.target.value)}
-                className="w-full h-32 px-6 py-4 bg-white border-2 border-blue-500 rounded-2xl text-slate-700 font-medium focus:ring-4 focus:ring-blue-100 transition-all resize-none shadow-sm"
+                className="w-full h-32 px-6 py-4 bg-white border-2 border-emerald-500 rounded-2xl text-slate-700 font-medium focus:ring-4 focus:ring-emerald-100 transition-all resize-none shadow-sm outline-none"
               />
             </div>
 
@@ -201,7 +187,7 @@ const TestPlanGenerator: React.FC = () => {
               <button
                 onClick={handleFetchDetails}
                 disabled={fetching}
-                className="flex-1 h-14 bg-white border-2 border-slate-100 text-slate-700 rounded-2xl font-black hover:bg-slate-50 transition-all disabled:opacity-50 flex items-center justify-center space-x-3 shadow-sm"
+                className="flex-1 h-14 bg-emerald-500 text-white rounded-2xl font-black hover:bg-emerald-600 transition-all disabled:opacity-50 flex items-center justify-center space-x-3 shadow-lg shadow-emerald-100"
               >
                 <RefreshCw size={20} className={fetching ? 'animate-spin' : ''} />
                 <span>{fetching ? 'Fetching...' : 'Fetch Details'}</span>
@@ -209,7 +195,7 @@ const TestPlanGenerator: React.FC = () => {
               <button
                 onClick={handleGenerateTestPlan}
                 disabled={generating}
-                className="flex-1 h-14 bg-blue-600 text-white rounded-2xl font-black hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center space-x-3 disabled:opacity-50"
+                className="flex-1 h-14 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all flex items-center justify-center space-x-3 disabled:opacity-50"
               >
                 <Zap size={22} className="fill-current" />
                 <span>{generating ? 'Generating...' : 'Generate Test Plan'}</span>
@@ -221,7 +207,7 @@ const TestPlanGenerator: React.FC = () => {
         {/* Fetched Issues Preview */}
         {fetchedIssues.length > 0 && (
           <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl p-8">
-            <h2 className="text-xl font-black text-[#0f172a] mb-6">📋 Fetched JIRA Issues ({fetchedIssues.length})</h2>
+            <h2 className="text-xl font-black text-[#0f172a] mb-6">📋 Fetched Rally Stories ({fetchedIssues.length})</h2>
             <div className="space-y-4">
               {fetchedIssues.map(issue => (
                 <div
@@ -229,12 +215,12 @@ const TestPlanGenerator: React.FC = () => {
                   onClick={() => setSelectedIssue(issue)}
                   className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${
                     selectedIssue?.key === issue.key
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-slate-100 hover:border-blue-200 hover:bg-slate-50'
+                      ? 'border-emerald-500 bg-emerald-50'
+                      : 'border-slate-100 hover:border-emerald-200 hover:bg-slate-50'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-black text-blue-600 uppercase">{issue.key}</span>
+                    <span className="text-sm font-black text-emerald-600 uppercase">{issue.key}</span>
                     <div className="flex items-center gap-2">
                       <span className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-600 font-bold">{issue.issueType}</span>
                       <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 font-bold">{issue.status}</span>
@@ -249,8 +235,8 @@ const TestPlanGenerator: React.FC = () => {
               ))}
             </div>
             {selectedIssue && (
-              <div className="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                <p className="text-sm font-black text-blue-700">✅ Selected for generation: <span className="font-bold">{selectedIssue.key} — {selectedIssue.title}</span></p>
+              <div className="mt-4 p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+                <p className="text-sm font-black text-emerald-700">✅ Selected for generation: <span className="font-bold">{selectedIssue.key} — {selectedIssue.title}</span></p>
               </div>
             )}
           </div>
@@ -274,7 +260,7 @@ const TestPlanGenerator: React.FC = () => {
                   </div>
                   <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold ${
                     plan.status === 'finalized' ? 'bg-green-100 text-green-700' :
-                    plan.status === 'synced' ? 'bg-blue-100 text-blue-700' :
+                    plan.status === 'synced' ? 'bg-emerald-100 text-emerald-700' :
                     'bg-slate-100 text-slate-600'
                   }`}>{plan.status}</span>
                 </div>
@@ -327,7 +313,7 @@ const TestPlanGenerator: React.FC = () => {
               })()}
             </div>
             <div className="p-8 bg-slate-50 flex gap-4">
-              <button onClick={handleExportJson} className="flex-1 h-12 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center gap-2">
+              <button onClick={handleExportJson} className="flex-1 h-12 bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-2">
                 <Download size={18} /> Export JSON
               </button>
               <button onClick={() => setShowGeneratedModal(false)} className="px-8 h-12 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold">Close</button>

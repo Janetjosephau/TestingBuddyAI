@@ -178,7 +178,7 @@ const LLMConfiguration: React.FC = () => {
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden">
           {/* Header */}
           <div className="p-10 pb-0 flex items-start space-x-4">
-            <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600">
+            <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
               <Settings size={28} />
             </div>
             <div>
@@ -196,7 +196,7 @@ const LLMConfiguration: React.FC = () => {
                 value={formData.name}
                 onChange={handleInputChange}
                 placeholder="e.g. Primary Ollama / Gemini Pro"
-                className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-blue-500 focus:bg-white transition-all outline-none"
+                className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-emerald-500 focus:bg-white transition-all outline-none"
               />
             </div>
 
@@ -208,7 +208,7 @@ const LLMConfiguration: React.FC = () => {
                     name="provider"
                     value={formData.provider}
                     onChange={handleInputChange}
-                    className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-blue-500 appearance-none outline-none"
+                    className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-emerald-500 appearance-none outline-none"
                   >
                     {providers.map(p => <option key={p.name} value={p.name}>{p.label}</option>)}
                   </select>
@@ -230,7 +230,7 @@ const LLMConfiguration: React.FC = () => {
                     name="model"
                     value={formData.model}
                     onChange={handleInputChange}
-                    className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-blue-500 appearance-none outline-none"
+                    className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-emerald-500 appearance-none outline-none"
                   >
                     {selectedProvider?.models.map(m => <option key={m} value={m}>{m}</option>)}
                   </select>
@@ -248,7 +248,7 @@ const LLMConfiguration: React.FC = () => {
                   value={formData.apiUrl}
                   onChange={handleInputChange}
                   placeholder="http://localhost:11434"
-                  className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold outline-none focus:border-blue-500"
+                  className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold outline-none focus:border-emerald-500"
                 />
               </div>
             )}
@@ -261,7 +261,7 @@ const LLMConfiguration: React.FC = () => {
                 value={formData.apiKey}
                 onChange={handleInputChange}
                 placeholder="••••••••••••••••••••••••••••"
-                className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-medium outline-none focus:border-blue-500"
+                className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-medium outline-none focus:border-emerald-500"
               />
             </div>
 
@@ -269,17 +269,18 @@ const LLMConfiguration: React.FC = () => {
               <button
                 onClick={handleTestConnection}
                 disabled={testing}
-                className="flex-1 h-14 bg-white border-2 border-slate-100 text-slate-700 rounded-2xl font-black hover:bg-slate-50 transition-all disabled:opacity-50"
+                className="flex-1 h-14 bg-emerald-500 text-white rounded-2xl font-black hover:bg-emerald-600 transition-all disabled:opacity-50 shadow-lg shadow-emerald-100 flex items-center justify-center space-x-3"
               >
-                {testing ? 'Probing...' : 'Test Connection'}
+                <RefreshCw size={20} className={testing ? 'animate-spin' : ''} />
+                <span>{testing ? 'Probing...' : 'Test Connection'}</span>
               </button>
               <button
                 onClick={handleSaveConfiguration}
                 disabled={loading}
-                className="flex-1 h-14 bg-blue-600 text-white rounded-2xl font-black hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center space-x-3"
+                className="flex-1 h-14 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all flex items-center justify-center space-x-3"
               >
                 <Save size={20} />
-                <span>{editingId ? 'Update Configuration' : 'Save Connection'}</span>
+                <span>{editingId ? 'Update Connection' : 'Save Connection'}</span>
               </button>
             </div>
           </div>
@@ -297,10 +298,7 @@ const LLMConfiguration: React.FC = () => {
               <div key={config.id} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-4">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xs uppercase ${
-                      config.provider === 'ollama' ? 'bg-emerald-50 text-emerald-600' :
-                      config.provider === 'gemini' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'
-                    }`}>
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xs uppercase bg-emerald-50 text-emerald-600`}>
                       {config.provider.substring(0, 3)}
                     </div>
                     <div>
@@ -309,7 +307,7 @@ const LLMConfiguration: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex space-x-1">
-                    <button onClick={() => handleEdit(config)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                    <button onClick={() => handleEdit(config)} className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all">
                       <Edit2 size={16} />
                     </button>
                     <button onClick={() => handleDelete(config.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
