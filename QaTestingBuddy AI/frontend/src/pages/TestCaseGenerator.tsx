@@ -236,13 +236,13 @@ const TestCaseGenerator: React.FC = () => {
                 <div className="flex justify-center mb-8">
                   <div className="bg-slate-100 p-1 rounded-2xl flex space-x-1 border border-slate-200">
                     <button 
-                      onClick={() => setReqSource('jira')}
+                      onClick={() => { setReqSource('jira'); setJqlQuery(''); }}
                       className={`px-8 py-3 rounded-xl text-sm font-black transition-all ${reqSource === 'jira' ? 'bg-white shadow-md text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                       Source: JIRA
                     </button>
                     <button 
-                      onClick={() => setReqSource('rally')}
+                      onClick={() => { setReqSource('rally'); setJqlQuery(''); }}
                       className={`px-8 py-3 rounded-xl text-sm font-black transition-all ${reqSource === 'rally' ? 'bg-white shadow-md text-emerald-600' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                       Source: RALLY
@@ -291,7 +291,7 @@ const TestCaseGenerator: React.FC = () => {
                       <input 
                         type="text" 
                         placeholder={`Search by ID or custom query (FormattedID = "US31488")`}
-                        value={jqlQuery || projectKey}
+                        value={jqlQuery}
                         onChange={(e) => setJqlQuery(e.target.value)}
                         className="w-full h-14 px-5 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold outline-none focus:border-emerald-500"
                       />
