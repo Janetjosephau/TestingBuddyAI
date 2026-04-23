@@ -18,6 +18,11 @@ export class RallyController {
     return this.rallyService.uploadTestCases(dto);
   }
 
+  @Post('fetch-requirements')
+  async fetchRequirements(@Body('query') query: string) {
+    return this.rallyService.fetchRequirements(query);
+  }
+
   @Post('configs')
   async createConfig(@Body() dto: CreateRallyConfigDto) {
     return this.rallyService.createConfig(dto);

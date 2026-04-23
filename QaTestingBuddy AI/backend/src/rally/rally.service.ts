@@ -118,6 +118,39 @@ export class RallyService {
     };
   }
 
+  async fetchRequirements(query: string) {
+    const config = await this.prisma.rallyConfig.findFirst();
+    if (!config) throw new NotFoundException('Rally configuration not found');
+
+    const baseUrl = config.instanceUrl.replace(/\/$/, '');
+    const headers = {
+      'zsessionid': config.apiKey,
+      'Accept': 'application/json',
+    };
+    
+    // Example query: (FormattedID = "US31488")
+    const apiQuery = query.includes('=') ? query : `(FormattedID = "${query}")`;
+    const url = `${baseUrl}/slm/webservice/v2.0/hierarchicalrequirement?query=${encodeURIComponent(apiQuery)}&fetch=true`;
+    
+    try {
+      const response = await axios.get(url, { headers });
+      const results = response.data?.QueryResult?.Results || [];
+      
+      const formatted = results.map(story => ({
+        key: story.FormattedID,
+        title: story._refObjectName || story.Name,
+        description: story.Description || '',
+        issueType: 'User Story',
+        status: story.ScheduleState || 'Defined',
+        priority: story.Priority?.Name || 'None'
+      }));
+      
+      return { success: true, requirements: formatted };
+    } catch (error: any) {
+      return { success: false, message: `Rally Fetch Failed: ${error.message}` };
+    }
+  }
+
   async getAllConfigs() {
     const configs = await this.prisma.rallyConfig.findMany({
       orderBy: { createdAt: 'desc' },
