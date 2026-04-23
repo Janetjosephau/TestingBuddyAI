@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { FileText, RefreshCw, Zap, Eye, Trash2, Download, Loader } from 'lucide-react'
+import { FileText, RefreshCw, Zap, Trash2, Download, ChevronDown } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { generatorApi, jiraApi, llmApi } from '../services/api'
 
@@ -11,20 +11,32 @@ interface TestPlan {
   testCases?: number
 }
 
+interface JiraIssue {
+  key: string
+  title: string
+  description: string
+  issueType: string
+  status: string
+  priority: string
+}
+
 const TestPlanGenerator: React.FC = () => {
   const [testPlans, setTestPlans] = useState<TestPlan[]>([])
   const [jiraConfigs, setJiraConfigs] = useState<any[]>([])
   const [llmConfigs, setLlmConfigs] = useState<any[]>([])
   const [selectedJiraConfigId, setSelectedJiraConfigId] = useState('')
   const [selectedLlmConfigId, setSelectedLlmConfigId] = useState('')
-  
+
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [fetching, setFetching] = useState(false)
-  
-  const [planName, setPlanName] = useState('')
+
+  const [projectKey, setProjectKey] = useState('KAN')
+  const [additionalContext, setAdditionalContext] = useState('')
+  const [fetchedIssues, setFetchedIssues] = useState<JiraIssue[]>([])
+  const [selectedIssue, setSelectedIssue] = useState<JiraIssue | null>(null)
   const [showGeneratedModal, setShowGeneratedModal] = useState(false)
-  const [generatedContent, setGeneratedContent] = useState('')
+  const [generatedContent, setGeneratedContent] = useState<any>(null)
 
   useEffect(() => {
     loadPrerequisites()
@@ -42,7 +54,7 @@ const TestPlanGenerator: React.FC = () => {
       if (jiraRes.data.length > 0) setSelectedJiraConfigId(jiraRes.data[0].id)
       if (llmRes.data.length > 0) setSelectedLlmConfigId(llmRes.data[0].id)
     } catch (e) {
-      toast.error('Failed to load connection configurations')
+      console.error(e)
     }
   }
 
@@ -56,41 +68,60 @@ const TestPlanGenerator: React.FC = () => {
   }
 
   const handleFetchDetails = async () => {
+    const activeJiraConfig = jiraConfigs[0]
+    if (!activeJiraConfig) {
+      toast.error('Please configure a JIRA connection first')
+      return
+    }
     setFetching(true)
-    setTimeout(() => {
+    setFetchedIssues([])
+    setSelectedIssue(null)
+    try {
+      const res = await jiraApi.fetchRequirements({
+        instanceUrl: activeJiraConfig.instanceUrl,
+        email: activeJiraConfig.email,
+        apiToken: activeJiraConfig.apiToken,
+        projectKey: projectKey || activeJiraConfig.projectKey || 'KAN',
+      })
+      if (res.data?.success && res.data.requirements?.length > 0) {
+        setFetchedIssues(res.data.requirements)
+        setSelectedIssue(res.data.requirements[0])
+        toast.success(`Fetched ${res.data.requirements.length} issues from JIRA`)
+      } else {
+        toast.error('No issues found. Check your Project Key.')
+      }
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Failed to fetch JIRA details')
+    } finally {
       setFetching(false)
-      toast.success('Project details fetched from Jira')
-    }, 1500)
+    }
   }
 
   const handleGenerateTestPlan = async () => {
-    if (!planName.trim()) {
-      toast.error('Please enter requirements or context')
+    if (!additionalContext.trim() && !selectedIssue) {
+      toast.error('Please fetch a Jira issue or provide additional context')
       return
     }
 
     setGenerating(true)
     try {
       const res = await generatorApi.generateTestPlan({
-        jiraIssueId: 'MANUAL',
+        jiraIssueId: selectedIssue?.key || 'MANUAL',
+        jiraRequirement: selectedIssue ? JSON.stringify(selectedIssue) : undefined,
         llmConfigId: selectedLlmConfigId || llmConfigs[0]?.id,
         jiraConfigId: selectedJiraConfigId || jiraConfigs[0]?.id,
-        additionalRequirements: planName
+        additionalRequirements: additionalContext ? [additionalContext] : undefined,
       })
 
-      setGeneratedContent(JSON.stringify(res.data, null, 2))
+      setGeneratedContent(res.data)
       setShowGeneratedModal(true)
-      toast.success('Test Plan Generated')
+      toast.success('Test Plan Generated Successfully!')
       await loadHistory()
     } catch (error: any) {
-      toast.error('Failed to generate test plan')
+      toast.error(error?.response?.data?.message || 'Failed to generate test plan. Please try again.')
     } finally {
       setGenerating(false)
     }
-  }
-
-  const handleExport = (format: string) => {
-    toast.success(`Exporting as ${format.toUpperCase()}...`)
   }
 
   const handleDeletePlan = async (id: string) => {
@@ -98,16 +129,27 @@ const TestPlanGenerator: React.FC = () => {
       try {
         await generatorApi.deleteTestPlan(id)
         toast.success('Test plan deleted')
-        await loadHistory() // Refresh the list
+        await loadHistory()
       } catch (error) {
         toast.error('Failed to delete test plan')
       }
     }
   }
 
+  const handleExportJson = () => {
+    if (!generatedContent) return
+    const blob = new Blob([JSON.stringify(generatedContent, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `test-plan-${Date.now()}.json`
+    a.click()
+    toast.success('Exported as JSON')
+  }
+
   return (
     <div className="min-h-screen bg-[#f8fafc] p-12">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto space-y-8">
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden p-12">
           {/* Header */}
           <div className="flex items-center space-x-4 mb-10">
@@ -115,71 +157,108 @@ const TestPlanGenerator: React.FC = () => {
               <FileText size={28} />
             </div>
             <div>
-              <h1 className="text-3xl font-black text-[#0f172a]">Step 1: Test Plan Generator</h1>
-              <p className="text-slate-500 mt-1 font-medium">Provide Jira details to fetch user stories and generate an intelligent test plan.</p>
+              <h1 className="text-3xl font-black text-[#0f172a]">Test Plan Generator</h1>
+              <p className="text-slate-500 mt-1 font-medium">Fetch Jira stories and generate an AI-powered test plan.</p>
             </div>
           </div>
 
           <div className="space-y-8">
-            {/* Jira Instance Box */}
+            {/* Jira Instance Display */}
             <div className="space-y-3">
               <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Jira Instance</label>
               <div className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl flex items-center">
                 <span className="text-slate-700 font-bold">
-                  {jiraConfigs[0]?.instanceUrl || 'https://lucky1985mayankmishra.atlassian.net/'}
+                  {jiraConfigs[0]?.instanceUrl || 'No JIRA connection configured — go to Connections > JIRA Connection'}
                 </span>
               </div>
             </div>
 
-            {/* Project ID Row */}
+            {/* Project Key Row */}
             <div className="space-y-3">
-              <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Project ID</label>
+              <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Project Key</label>
               <input
                 type="text"
-                defaultValue="KAN"
+                value={projectKey}
+                onChange={(e) => setProjectKey(e.target.value.toUpperCase())}
                 placeholder="e.g., KAN"
-                className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-blue-500 focus:bg-white transition-all appearance-none"
+                className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-blue-500 focus:bg-white transition-all uppercase"
               />
             </div>
 
-            {/* Additional Context Textarea */}
+            {/* Additional Context */}
             <div className="space-y-3">
-              <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase text-blue-600">Additional Context</label>
+              <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase text-blue-600">Additional Context (Optional)</label>
               <textarea
-                placeholder="Create a small 1 page test plan"
-                value={planName}
-                onChange={(e) => setPlanName(e.target.value)}
+                placeholder="e.g. Create a small test plan covering the login and registration flows"
+                value={additionalContext}
+                onChange={(e) => setAdditionalContext(e.target.value)}
                 className="w-full h-32 px-6 py-4 bg-white border-2 border-blue-500 rounded-2xl text-slate-700 font-medium focus:ring-4 focus:ring-blue-100 transition-all resize-none shadow-sm"
               />
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center space-x-6 pt-6">
+            {/* Action Buttons — Same Size */}
+            <div className="flex items-center space-x-6 pt-2">
               <button
                 onClick={handleFetchDetails}
                 disabled={fetching}
-                className="px-10 h-14 bg-white border-2 border-slate-100 text-slate-700 rounded-2xl font-black hover:bg-slate-50 transition-all disabled:opacity-50 flex items-center space-x-3 shadow-sm"
+                className="flex-1 h-14 bg-white border-2 border-slate-100 text-slate-700 rounded-2xl font-black hover:bg-slate-50 transition-all disabled:opacity-50 flex items-center justify-center space-x-3 shadow-sm"
               >
-                <div className="relative">
-                  <RefreshCw size={20} className={fetching ? 'animate-spin' : ''} />
-                </div>
-                <span>Fetch Details</span>
+                <RefreshCw size={20} className={fetching ? 'animate-spin' : ''} />
+                <span>{fetching ? 'Fetching...' : 'Fetch Details'}</span>
               </button>
               <button
                 onClick={handleGenerateTestPlan}
                 disabled={generating}
-                className="flex-1 h-14 bg-blue-600 text-white rounded-2xl font-black hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center space-x-3"
+                className="flex-1 h-14 bg-blue-600 text-white rounded-2xl font-black hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center space-x-3 disabled:opacity-50"
               >
                 <Zap size={22} className="fill-current" />
-                <span>Generate Test Plan</span>
+                <span>{generating ? 'Generating...' : 'Generate Test Plan'}</span>
               </button>
             </div>
           </div>
         </div>
 
+        {/* Fetched Issues Preview */}
+        {fetchedIssues.length > 0 && (
+          <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl p-8">
+            <h2 className="text-xl font-black text-[#0f172a] mb-6">📋 Fetched JIRA Issues ({fetchedIssues.length})</h2>
+            <div className="space-y-4">
+              {fetchedIssues.map(issue => (
+                <div
+                  key={issue.key}
+                  onClick={() => setSelectedIssue(issue)}
+                  className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${
+                    selectedIssue?.key === issue.key
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-slate-100 hover:border-blue-200 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-black text-blue-600 uppercase">{issue.key}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-600 font-bold">{issue.issueType}</span>
+                      <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 font-bold">{issue.status}</span>
+                      <span className="text-xs px-2 py-1 rounded-full bg-orange-100 text-orange-700 font-bold">{issue.priority}</span>
+                    </div>
+                  </div>
+                  <p className="font-bold text-[#0f172a]">{issue.title}</p>
+                  {issue.description && (
+                    <p className="text-sm text-slate-500 mt-1 line-clamp-2">{issue.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+            {selectedIssue && (
+              <div className="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                <p className="text-sm font-black text-blue-700">✅ Selected for generation: <span className="font-bold">{selectedIssue.key} — {selectedIssue.title}</span></p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* History Section */}
         {testPlans.length > 0 && (
-          <div className="mt-12">
+          <div>
             <h2 className="text-2xl font-bold text-[#0f172a] mb-6 px-4">Recent Test Plans</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {testPlans.map(plan => (
@@ -189,12 +268,15 @@ const TestPlanGenerator: React.FC = () => {
                       <h3 className="font-bold text-[#0f172a]">{plan.name}</h3>
                       <p className="text-sm text-slate-500">{new Date(plan.generatedAt).toLocaleDateString()}</p>
                     </div>
-                    <div className="flex gap-2">
-                      <button onClick={() => handleDeletePlan(plan.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
+                    <button onClick={() => handleDeletePlan(plan.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                      <Trash2 size={18} />
+                    </button>
                   </div>
+                  <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold ${
+                    plan.status === 'finalized' ? 'bg-green-100 text-green-700' :
+                    plan.status === 'synced' ? 'bg-blue-100 text-blue-700' :
+                    'bg-slate-100 text-slate-600'
+                  }`}>{plan.status}</span>
                 </div>
               ))}
             </div>
@@ -202,19 +284,52 @@ const TestPlanGenerator: React.FC = () => {
         )}
       </div>
 
-      {showGeneratedModal && (
+      {/* Generated Test Plan Modal */}
+      {showGeneratedModal && generatedContent && (
         <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col">
             <div className="p-8 border-b border-slate-100 flex items-center justify-between">
-              <h2 className="text-2xl font-black text-[#0f172a]">Generated Test Plan</h2>
-              <button onClick={() => setShowGeneratedModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+              <div>
+                <h2 className="text-2xl font-black text-[#0f172a]">✅ Test Plan Generated</h2>
+                <p className="text-slate-500 text-sm mt-1">{generatedContent.name}</p>
+              </div>
+              <button onClick={() => setShowGeneratedModal(false)} className="text-slate-400 hover:text-slate-600 text-2xl font-bold">✕</button>
             </div>
-            <div className="p-8 overflow-y-auto flex-1">
-              <pre className="whitespace-pre-wrap text-sm text-slate-700 font-mono bg-slate-50 p-6 rounded-2xl">{generatedContent}</pre>
+            <div className="p-8 overflow-y-auto flex-1 space-y-6">
+              {generatedContent.content && (() => {
+                try {
+                  const c = JSON.parse(generatedContent.content)
+                  return (
+                    <>
+                      {c.objectives && (
+                        <div>
+                          <h3 className="font-black text-slate-800 mb-2">🎯 Objectives</h3>
+                          <ul className="list-disc list-inside space-y-1 text-slate-600">
+                            {c.objectives.map((o: string, i: number) => <li key={i}>{o}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                      {c.strategy && <div><h3 className="font-black text-slate-800 mb-1">📋 Strategy</h3><p className="text-slate-600">{c.strategy}</p></div>}
+                      {c.timeline && <div><h3 className="font-black text-slate-800 mb-1">⏱ Timeline</h3><p className="text-slate-600">{c.timeline}</p></div>}
+                      {c.exitCriteria && (
+                        <div>
+                          <h3 className="font-black text-slate-800 mb-2">✅ Exit Criteria</h3>
+                          <ul className="list-disc list-inside space-y-1 text-slate-600">
+                            {c.exitCriteria.map((e: string, i: number) => <li key={i}>{e}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                    </>
+                  )
+                } catch {
+                  return <pre className="whitespace-pre-wrap text-sm text-slate-700 font-mono bg-slate-50 p-6 rounded-2xl">{JSON.stringify(generatedContent, null, 2)}</pre>
+                }
+              })()}
             </div>
             <div className="p-8 bg-slate-50 flex gap-4">
-              <button onClick={() => handleExport('pdf')} className="flex-1 h-12 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center gap-2"><Download size={18} /> Export Text</button>
-              <button onClick={() => handleExport('json')} className="flex-1 h-12 bg-slate-800 text-white rounded-xl font-bold flex items-center justify-center gap-2"><Download size={18} /> Export JSON</button>
+              <button onClick={handleExportJson} className="flex-1 h-12 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center gap-2">
+                <Download size={18} /> Export JSON
+              </button>
               <button onClick={() => setShowGeneratedModal(false)} className="px-8 h-12 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold">Close</button>
             </div>
           </div>

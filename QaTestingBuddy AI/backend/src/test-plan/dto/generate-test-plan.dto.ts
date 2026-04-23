@@ -4,11 +4,13 @@ export class GenerateTestPlanDto {
   @IsString()
   jiraIssueId: string;
 
+  @IsOptional()
   @IsString()
-  jiraRequirement: string; // JSON string of the Jira requirement
+  jiraRequirement?: string; // JSON string of the Jira requirement
 
+  @IsOptional()
   @IsString()
-  llmConfigId: string;
+  llmConfigId?: string;
 
   @IsOptional()
   @IsString()
