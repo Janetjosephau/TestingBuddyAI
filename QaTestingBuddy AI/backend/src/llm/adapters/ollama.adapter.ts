@@ -8,7 +8,8 @@ export class OllamaAdapter implements LLMAdapter {
 
   async testConnection(config: LLMConfig): Promise<{ success: boolean; error?: string; models?: string[] }> {
     try {
-      const url = config.apiUrl?.replace(/\/$/, '') || this.baseUrl;
+      let url = config.apiUrl?.replace(/\/$/, '') || this.baseUrl;
+      url = url.replace(/\/api\/generate$/, '');
       const response = await axios.get(`${url}/api/tags`, {
         timeout: 10000,
         headers: {
@@ -42,8 +43,11 @@ export class OllamaAdapter implements LLMAdapter {
         },
       };
 
-      const url = config.apiUrl?.replace(/\/$/, '') || this.baseUrl;
-      const response = await axios.post(`${url}/api/generate`, payload, {
+      let url = config.apiUrl?.replace(/\/$/, '') || this.baseUrl;
+      if (!url.endsWith('/api/generate')) {
+        url = `${url}/api/generate`;
+      }
+      const response = await axios.post(url, payload, {
         timeout: 300000, // 5 minutes for slow local models
         headers: {
           'ngrok-skip-browser-warning': 'true'
