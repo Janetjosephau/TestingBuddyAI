@@ -10,7 +10,10 @@ export class OllamaAdapter implements LLMAdapter {
     try {
       const url = config.apiUrl?.replace(/\/$/, '') || this.baseUrl;
       const response = await axios.get(`${url}/api/tags`, {
-        timeout: 5000,
+        timeout: 10000,
+        headers: {
+          'ngrok-skip-browser-warning': 'true'
+        }
       });
 
       if (response.data && response.data.models) {
@@ -41,7 +44,10 @@ export class OllamaAdapter implements LLMAdapter {
 
       const url = config.apiUrl?.replace(/\/$/, '') || this.baseUrl;
       const response = await axios.post(`${url}/api/generate`, payload, {
-        timeout: 60000, // 60 seconds timeout for generation
+        timeout: 120000, // 2 minutes for slow local models
+        headers: {
+          'ngrok-skip-browser-warning': 'true'
+        }
       });
 
       if (response.data && response.data.response) {
