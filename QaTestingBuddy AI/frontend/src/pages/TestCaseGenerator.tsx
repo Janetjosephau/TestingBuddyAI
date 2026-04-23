@@ -50,7 +50,7 @@ const TestCaseGenerator: React.FC = () => {
   const [generatedTestCases, setGeneratedTestCases] = useState<TestCase[]>([])
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [syncResult, setSyncResult] = useState<{ success: boolean; message: string; errors?: string[] } | null>(null)
-  const [reqSource, setReqSource] = useState<'jira' | 'rally'>('jira')
+  const [reqSource, setReqSource] = useState<'jira' | 'rally'>('rally')
 
   useEffect(() => {
     loadLlmConfigs()
@@ -233,84 +233,20 @@ const TestCaseGenerator: React.FC = () => {
             {activeTab === 'fetch' && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 
-                {/* Source Selector */}
-                <div className="flex justify-center mb-8">
-                  <div className="bg-slate-100 p-1 rounded-2xl flex space-x-1 border border-slate-200">
-                    <button 
-                      onClick={() => { setReqSource('jira'); setJqlQuery(''); }}
-                      className={`px-8 py-3 rounded-xl text-sm font-black transition-all ${reqSource === 'jira' ? 'bg-white shadow-md text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                      Source: JIRA
-                    </button>
-                    <button 
-                      onClick={() => { setReqSource('rally'); setJqlQuery(''); }}
-                      className={`px-8 py-3 rounded-xl text-sm font-black transition-all ${reqSource === 'rally' ? 'bg-white shadow-md text-emerald-600' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                      Source: RALLY
-                    </button>
+                <div className="grid grid-cols-1 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Rally Formatted ID (e.g. US31488)</label>
+                    <input 
+                      type="text" 
+                      placeholder={`Search by ID or custom query (FormattedID = "US31488")`}
+                      value={jqlQuery}
+                      onChange={(e) => {
+                        setReqSource('rally');
+                        setJqlQuery(e.target.value);
+                      }}
+                      className="w-full h-14 px-5 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold outline-none focus:border-emerald-500"
+                    />
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {reqSource === 'jira' ? (
-                    <>
-                      <div className="space-y-2">
-                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Project Key</label>
-                        <input 
-                          type="text" 
-                          value={projectKey} 
-                          onChange={(e) => setProjectKey(e.target.value.toUpperCase())}
-                          className="w-full h-14 px-5 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-emerald-500 focus:bg-white transition-all font-bold outline-none"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Issue Type</label>
-                        <select 
-                          value={issueType}
-                          onChange={(e) => setIssueType(e.target.value)}
-                          className="w-full h-14 px-5 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold outline-none cursor-pointer"
-                        >
-                          <option>Story</option>
-                          <option>Bug</option>
-                          <option>Task</option>
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Status Filter</label>
-                        <input 
-                          type="text" 
-                          placeholder="e.g. In Progress"
-                          value={statusFilter}
-                          onChange={(e) => setStatusFilter(e.target.value)}
-                          className="w-full h-14 px-5 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold outline-none"
-                        />
-                      </div>
-                    </>
-                  ) : (
-                    <div className="md:col-span-2 space-y-2">
-                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Rally Formatted ID (e.g. US31488)</label>
-                      <input 
-                        type="text" 
-                        placeholder={`Search by ID or custom query (FormattedID = "US31488")`}
-                        value={jqlQuery}
-                        onChange={(e) => setJqlQuery(e.target.value)}
-                        className="w-full h-14 px-5 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold outline-none focus:border-emerald-500"
-                      />
-                    </div>
-                  )}
-                  
-                  {reqSource === 'jira' && (
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Custom JQL (Advanced)</label>
-                      <input 
-                        type="text" 
-                        placeholder="e.g. assignee = currentUser()"
-                        value={jqlQuery}
-                        onChange={(e) => setJqlQuery(e.target.value)}
-                        className="w-full h-14 px-5 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold outline-none"
-                      />
-                    </div>
-                  )}
                 </div>
 
                 <div className="flex justify-center pt-4">

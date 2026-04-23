@@ -75,17 +75,6 @@ const Sidebar: React.FC = () => {
               </li>
               <li>
                 <Link
-                  to="/connections/jira"
-                  className={`flex items-center space-x-3 transition-all duration-200 ${
-                    isActive('/connections/jira') ? 'text-blue-500' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <Database size={22} className={isActive('/connections/jira') ? 'fill-blue-500/10' : ''} />
-                  <span className="font-bold">JIRA Connection</span>
-                </Link>
-              </li>
-              <li>
-                <Link
                   to="/connections/rally"
                   className={`flex items-center space-x-3 transition-all duration-200 ${
                     isActive('/connections/rally') ? 'text-emerald-500' : 'text-slate-400 hover:text-white'
