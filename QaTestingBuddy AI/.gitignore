@@ -40,3 +40,6 @@ frontend/dist/
 backend/output.txt
 backend/node_modules/
 frontend/node_modules/
+backend/*.db
+backend/startup_log*.txt
+backend/prisma.config.ts

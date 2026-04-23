@@ -116,4 +116,63 @@ export class JiraService {
     if (!token || token.length <= 8) return '********';
     return token.substring(0, 4) + '****' + token.substring(token.length - 4);
   }
+
+  // ------------------------------------------------------------
+  // Additional endpoints used by the frontend
+  // ------------------------------------------------------------
+
+  /**
+   * Fetch Jira requirements (issues) based on the provided DTO.
+   * Returns a list of simplified issue objects.
+   */
+  async fetchRequirements(dto: FetchJiraRequirementsDto) {
+    const { instanceUrl, email, apiToken, projectKey, issueType, status, jql } = dto;
+    const baseUrl = instanceUrl.replace(/\/$/, '');
+    const authHeader = this.createAuthHeader(email, apiToken);
+    const headers = { Authorization: authHeader, Accept: 'application/json' };
+
+    // Build JQL query with optional filters
+    let query = `project=\"${projectKey}\"`;
+    if (issueType) query += ` AND issuetype=\"${issueType}\"`;
+    if (status) query += ` AND status=\"${status}\"`;
+    if (jql) query += ` AND (${jql})`;
+
+    const url = `${baseUrl}/rest/api/3/search?jql=${encodeURIComponent(query)}&maxResults=50`;
+    try {
+      const response = await axios.get(url, { headers });
+      const issues = response.data?.issues?.map((issue: any) => ({
+        key: issue.key,
+        title: issue.fields.summary,
+        description: issue.fields.description || '',
+        issueType: issue.fields.issuetype?.name,
+        status: issue.fields.status?.name,
+        priority: issue.fields.priority?.name,
+      })) || [];
+      return { success: true, requirements: issues };
+    } catch (error: any) {
+      const errMsg = error.response?.data?.errorMessages?.[0] || error.message;
+      return { success: false, message: `Failed to fetch requirements: ${errMsg}` };
+    }
+  }
+
+  /**
+   * Retrieve a list of projects accessible with the given credentials.
+   */
+  async getProjects(dto: TestJiraConnectionDto) {
+    const { instanceUrl, email, apiToken } = dto;
+    const baseUrl = instanceUrl.replace(/\/$/, '');
+    const authHeader = this.createAuthHeader(email, apiToken);
+    const headers = { Authorization: authHeader, Accept: 'application/json' };
+    const url = `${baseUrl}/rest/api/3/project/search?maxResults=100`;
+    try {
+      const response = await axios.get(url, { headers });
+      const projects = response.data?.values?.map((p: any) => ({ id: p.id, key: p.key, name: p.name })) || [];
+      return { success: true, projects };
+    } catch (error: any) {
+      const errMsg = error.response?.data?.errorMessages?.[0] || error.message;
+      return { success: false, message: `Failed to fetch projects: ${errMsg}` };
+    }
+  }
 }
+
+
