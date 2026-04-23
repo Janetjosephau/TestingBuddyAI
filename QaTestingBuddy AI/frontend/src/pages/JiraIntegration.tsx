@@ -171,6 +171,19 @@ const JiraIntegration: React.FC = () => {
 
             {/* Access Token */}
             <div className="space-y-3">
+              <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Project Key (e.g., KAN, PROJ)</label>
+              <input
+                type="text"
+                name="projectKey"
+                value={formData.projectKey}
+                onChange={(e) => setFormData({...formData, projectKey: e.target.value.toUpperCase()})}
+                placeholder="e.g., KAN"
+                className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-blue-500 focus:bg-white transition-all uppercase"
+              />
+            </div>
+
+            {/* Access Token */}
+            <div className="space-y-3">
               <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Access Token (API Token)</label>
               <input
                 type="password"

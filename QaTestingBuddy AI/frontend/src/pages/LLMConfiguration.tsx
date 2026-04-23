@@ -172,6 +172,19 @@ const LLMConfiguration: React.FC = () => {
           </div>
 
           <div className="p-12 space-y-10">
+            {/* Configuration Name */}
+            <div className="space-y-3">
+              <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Configuration Name *</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="e.g. My Primary GPT-4 / Local Ollama"
+                className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-blue-500 focus:bg-white transition-all"
+              />
+            </div>
+
             {/* Top Row: Provider & Model */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <div className="space-y-3">
