@@ -10,7 +10,6 @@ export class CreateLlmConfigDto {
 
   @IsOptional()
   @IsString()
-  @Length(1, 500)
   apiKey?: string;
 
   @IsOptional()

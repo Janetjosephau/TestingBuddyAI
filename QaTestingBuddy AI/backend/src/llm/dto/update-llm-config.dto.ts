@@ -12,7 +12,6 @@ export class UpdateLlmConfigDto {
 
   @IsOptional()
   @IsString()
-  @Length(1, 500)
   apiKey?: string;
 
   @IsOptional()
