@@ -122,7 +122,8 @@ const TestCaseGenerator: React.FC = () => {
       const res = await generatorApi.generateTestCases({
         testPlanId: 'manual-gen',
         llmConfigId: selectedLlmId,
-        additionalInstructions: `Requirement: ${selectedIssue.title}. Context: ${additionalContext}`
+        additionalInstructions: additionalContext,
+        requirementBody: `${selectedIssue.title}\n\n${selectedIssue.description || ''}`
       })
 
       if (res.data.success) {

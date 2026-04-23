@@ -12,4 +12,8 @@ export class GenerateTestCasesDto {
   @IsOptional()
   @IsString()
   additionalInstructions?: string;
+
+  @IsOptional()
+  @IsString()
+  requirementBody?: string;
 }

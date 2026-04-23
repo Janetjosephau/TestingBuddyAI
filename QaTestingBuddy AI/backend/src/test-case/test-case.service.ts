@@ -13,11 +13,16 @@ export class TestCaseService {
   ) {}
 
   async generateTestCases(dto: GenerateTestCasesDto) {
-    const { testPlanId, llmConfigId, additionalInstructions } = dto;
+    const { testPlanId, llmConfigId, additionalInstructions, requirementBody } = dto;
 
     const prompt = `
-      You are an expert QA Automation Engineer. Generate 5 comprehensive test cases based on the following instructions:
-      "${additionalInstructions}"
+      You are an expert QA Automation Engineer. Generate comprehensive test cases based on the following requirement:
+      
+      REQUIREMENT:
+      ${requirementBody || 'No requirement details provided.'}
+
+      USER INSTRUCTIONS:
+      ${additionalInstructions || 'Generate standard functional test cases.'}
 
       Return ONLY a JSON array of objects. Each object MUST have this structure:
       {
@@ -29,7 +34,7 @@ export class TestCaseService {
         "priority": "high" // "low", "medium", "high", "critical"
       }
       
-      Do NOT include any markdown formatting, backticks, or extra text. JUST the JSON array.
+      CRITICAL: Return ONLY valid JSON starting with [ and ending with ]. Do NOT include any markdown formatting, backticks, or intro/outro text.
     `;
 
     try {
