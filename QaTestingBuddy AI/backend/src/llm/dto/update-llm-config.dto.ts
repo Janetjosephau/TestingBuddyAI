@@ -1,8 +1,8 @@
-﻿import { IsEnum, IsString, IsOptional, IsNumber, IsUrl, Min, Max, Length } from 'class-validator';
+import { IsEnum, IsString, IsOptional, IsNumber, IsUrl, Min, Max, Length } from 'class-validator';
 
 export class UpdateLlmConfigDto {
   @IsOptional()
-  @IsEnum(['openai', 'gemini', 'ollama', 'lmstudio', 'grok'])
+  @IsEnum(['ollama', 'groq', 'gemini', 'openai', 'lmstudio', 'grok'])
   provider?: string;
 
   @IsOptional()
@@ -16,7 +16,7 @@ export class UpdateLlmConfigDto {
   apiKey?: string;
 
   @IsOptional()
-  @IsUrl()
+  @IsString()
   apiUrl?: string;
 
   @IsOptional()
