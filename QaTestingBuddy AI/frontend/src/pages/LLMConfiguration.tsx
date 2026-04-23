@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Save, TestTube, Edit2, Trash2, CheckCircle, AlertCircle, Loader, Settings, ChevronDown } from 'lucide-react'
+import { Save, TestTube, Edit2, Trash2, CheckCircle, AlertCircle, Loader, Settings, ChevronDown, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { llmApi } from '../services/api'
 
@@ -35,8 +35,20 @@ const LLMConfiguration: React.FC = () => {
     {
       name: 'ollama',
       label: 'Ollama (Self-Hosted)',
-      models: ['llama2', 'mistral', 'neural-chat', 'llama3'],
+      models: ['llama3', 'llama2', 'mistral', 'neural-chat'],
       requiresUrl: true
+    },
+    {
+      name: 'gemini',
+      label: 'Google Gemini',
+      models: ['gemini-1.5-pro', 'gemini-1.5-flash'],
+      requiresUrl: false
+    },
+    {
+      name: 'openai',
+      label: 'OpenAI',
+      models: ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'],
+      requiresUrl: false
     }
   ]
 
@@ -210,6 +222,14 @@ const LLMConfiguration: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Model ID</label>
+                  {formData.provider === 'ollama' && (
+                    <button 
+                      onClick={handleTestConnection}
+                      className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 uppercase tracking-tight flex items-center gap-1"
+                    >
+                      <RefreshCw size={12} className={testing ? 'animate-spin' : ''} /> Fetch Models
+                    </button>
+                  )}
                   <button className="text-[11px] font-bold text-purple-600 hover:text-purple-700 uppercase tracking-tight flex items-center gap-1">
                     <Edit2 size={12} /> Custom Model
                   </button>
@@ -221,18 +241,33 @@ const LLMConfiguration: React.FC = () => {
                     onChange={handleInputChange}
                     className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-blue-500 focus:bg-white transition-all appearance-none"
                   >
-                    <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile</option>
-                    <option value="llama-3.1-70b">llama-3.1-70b</option>
-                    <option value="mixtral-8x7b">mixtral-8x7b</option>
+                    {selectedProvider?.models.map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
                   </select>
                   <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
               </div>
             </div>
 
+            {/* API URL Row (Shown for Ollama) */}
+            {selectedProvider?.requiresUrl && (
+              <div className="space-y-3">
+                <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">API Instance URL (Ollama Endpoint)</label>
+                <input
+                  type="text"
+                  name="apiUrl"
+                  value={formData.apiUrl}
+                  onChange={handleInputChange}
+                  placeholder="e.g. http://localhost:11434"
+                  className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-blue-500 focus:bg-white transition-all"
+                />
+              </div>
+            )}
+
             {/* API Key Row */}
             <div className="space-y-3">
-              <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">API Key</label>
+              <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">API Key / Token (Leave blank for Ollama)</label>
               <input
                 type="password"
                 name="apiKey"
@@ -241,7 +276,7 @@ const LLMConfiguration: React.FC = () => {
                 placeholder="••••••••••••••••••••••••••••••••••••••••"
                 className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-medium focus:border-blue-500 focus:bg-white transition-all"
               />
-              <p className="text-[10px] text-slate-400 italic font-medium px-2">Your API key is stored locally in your browser and never sent to our servers.</p>
+              <p className="text-[10px] text-slate-400 italic font-medium px-2">Your API key is stored securely in the database.</p>
             </div>
 
             {/* Action Row */}
