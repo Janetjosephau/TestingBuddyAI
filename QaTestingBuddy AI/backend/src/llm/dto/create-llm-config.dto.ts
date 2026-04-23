@@ -1,19 +1,20 @@
 import { IsEnum, IsString, IsOptional, IsNumber, IsUrl, Min, Max, Length } from 'class-validator';
 
 export class CreateLlmConfigDto {
-  @IsEnum(['ollama'])
+  @IsEnum(['ollama', 'groq', 'gemini', 'openai'])
   provider: string;
 
   @IsString()
   @Length(1, 100)
   name: string;
 
+  @IsOptional()
   @IsString()
   @Length(1, 500)
-  apiKey: string;
+  apiKey?: string;
 
   @IsOptional()
-  @IsUrl()
+  @IsString()
   apiUrl?: string;
 
   @IsString()

@@ -1,14 +1,15 @@
 import { IsEnum, IsString, IsOptional, IsNumber, IsUrl, Min, Max } from 'class-validator';
 
 export class TestConnectionDto {
-  @IsEnum(['ollama'])
+  @IsEnum(['ollama', 'groq', 'gemini', 'openai'])
   provider: string;
 
+  @IsOptional()
   @IsString()
   apiKey?: string;
 
   @IsOptional()
-  @IsUrl()
+  @IsString()
   apiUrl?: string;
 
   @IsString()

@@ -75,7 +75,10 @@ const LLMConfiguration: React.FC = () => {
   const handleTestConnection = async () => {
     setTesting(true)
     try {
-      const response = await llmApi.testConnection(formData)
+      // Create a copy of formData without the 'name' property for testing
+      const { name, ...testData } = formData
+      const response = await llmApi.testConnection(testData)
+      
       if (response.data?.status === 'connected' || response.data?.success) {
         toast.success(response.data.message || 'Connection Successful')
       } else {
