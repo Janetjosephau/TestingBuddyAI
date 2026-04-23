@@ -97,8 +97,7 @@ const TestCaseGenerator: React.FC = () => {
         testPlanId: 'manual-gen',
         llmConfigId: selectedLlmId,
         additionalInstructions: additionalContext,
-        requirementBody: `${selectedIssue.title}\n\n${selectedIssue.description || ''}`,
-        requirementId: selectedIssue.key
+        requirementBody: `${selectedIssue.title}\n\n${selectedIssue.description || ''}`
       })
 
       if (res.data.success) {
