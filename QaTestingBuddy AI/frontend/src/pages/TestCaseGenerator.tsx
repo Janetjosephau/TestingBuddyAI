@@ -290,7 +290,7 @@ const TestCaseGenerator: React.FC = () => {
                       <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Rally Formatted ID (e.g. US31488)</label>
                       <input 
                         type="text" 
-                        placeholder="Search by ID or custom query (FormattedID = \"US31488\")"
+                        placeholder={`Search by ID or custom query (FormattedID = "US31488")`}
                         value={jqlQuery || projectKey}
                         onChange={(e) => setJqlQuery(e.target.value)}
                         className="w-full h-14 px-5 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold outline-none focus:border-emerald-500"
