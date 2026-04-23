@@ -49,6 +49,7 @@ const TestCaseGenerator: React.FC = () => {
   const [additionalContext, setAdditionalContext] = useState('')
   const [generatedTestCases, setGeneratedTestCases] = useState<TestCase[]>([])
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
+  const [syncResult, setSyncResult] = useState<{ success: boolean; message: string; errors?: string[] } | null>(null)
 
   useEffect(() => {
     loadLlmConfigs()
@@ -157,6 +158,7 @@ const TestCaseGenerator: React.FC = () => {
     }
     
     setUploading(true);
+    setSyncResult(null);
     try {
       const rallyConfigs = await rallyApi.getConfigs();
       if (!rallyConfigs.data || rallyConfigs.data.length === 0) {
@@ -170,14 +172,15 @@ const TestCaseGenerator: React.FC = () => {
         storyKey: selectedIssue?.key
       });
       
+      setSyncResult(res.data);
       if (res.data.success) {
         toast.success(res.data.message);
-        setActiveTab('fetch'); // Back to start after success
       } else {
         toast.error(res.data.message || 'Upload failed');
       }
     } catch (e: any) {
       toast.error(e.response?.data?.message || 'Connection error with Rally');
+      setSyncResult({ success: false, message: 'Connection Error with Rally Server' });
     } finally {
       setUploading(false);
     }
@@ -486,6 +489,22 @@ const TestCaseGenerator: React.FC = () => {
                     <span className="font-bold text-slate-700">Enterprise XML / JSON Integration</span>
                   </div>
                 </div>
+
+                {syncResult && (
+                  <div className={`p-6 rounded-2xl border-2 animate-in zoom-in-95 duration-300 ${syncResult.success ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-red-50 border-red-100 text-red-800'}`}>
+                    <div className="flex items-center space-x-3 mb-2">
+                      {syncResult.success ? <CheckCircle2 size={24} /> : <AlertCircle size={24} />}
+                      <h4 className="font-black text-lg">{syncResult.success ? 'Upload Successful' : 'Upload Failed'}</h4>
+                    </div>
+                    <p className="font-bold">{syncResult.message}</p>
+                    {syncResult.errors && syncResult.errors.length > 0 && (
+                      <div className="mt-4 text-left p-4 bg-white/50 rounded-xl space-y-2">
+                        <p className="text-xs font-black uppercase tracking-widest text-red-400">Error Details:</p>
+                        {syncResult.errors.map((err, i) => <p key={i} className="text-sm font-medium text-red-600">• {err}</p>)}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="pt-6">
                    <button 
