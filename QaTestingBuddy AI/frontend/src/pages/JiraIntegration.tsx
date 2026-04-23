@@ -200,7 +200,7 @@ const JiraIntegration: React.FC = () => {
               <button
                 onClick={handleTestConnection}
                 disabled={testing}
-                className="px-10 h-14 bg-white border-2 border-slate-100 text-slate-700 rounded-2xl font-black hover:bg-slate-50 transition-all disabled:opacity-50"
+                className="flex-1 h-14 bg-white border-2 border-slate-100 text-slate-700 rounded-2xl font-black hover:bg-slate-50 transition-all disabled:opacity-50"
               >
                 {testing ? 'Checking...' : 'Test Connection'}
               </button>
