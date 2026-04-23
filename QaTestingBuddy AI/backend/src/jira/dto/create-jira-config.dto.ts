@@ -1,4 +1,4 @@
-import { IsString, IsEmail, Length } from 'class-validator';
+import { IsString, IsEmail, IsOptional, Length } from 'class-validator';
 
 export class CreateJiraConfigDto {
   @IsString()
@@ -12,7 +12,8 @@ export class CreateJiraConfigDto {
   @Length(1, 500)
   apiToken: string;
 
+  @IsOptional()
   @IsString()
   @Length(1, 50)
-  projectKey: string;
+  projectKey?: string;
 }

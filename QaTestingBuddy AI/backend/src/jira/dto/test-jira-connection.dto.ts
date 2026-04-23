@@ -1,7 +1,8 @@
-import { IsString, IsUrl, Length } from 'class-validator';
+import { IsString, IsOptional, Length } from 'class-validator';
 
 export class TestJiraConnectionDto {
-  @IsUrl()
+  @IsString()
+  @Length(1, 200)
   instanceUrl: string;
 
   @IsString()
@@ -12,6 +13,7 @@ export class TestJiraConnectionDto {
   @Length(1, 255)
   apiToken: string;
 
+  @IsOptional()
   @IsString()
   @Length(1, 50)
   projectKey?: string;
