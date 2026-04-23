@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Dashboard from './pages/Dashboard'
 import LLMConfiguration from './pages/LLMConfiguration'
-import JiraIntegration from './pages/JiraIntegration'
 import RallyIntegration from './pages/RallyIntegration'
 import TestPlanGenerator from './pages/TestPlanGenerator'
 import TestCaseGenerator from './pages/TestCaseGenerator'
@@ -19,7 +18,6 @@ function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/connections/llm" element={<LLMConfiguration />} />
-            <Route path="/connections/jira" element={<JiraIntegration />} />
             <Route path="/connections/rally" element={<RallyIntegration />} />
             <Route path="/generator/test-plan" element={<TestPlanGenerator />} />
             <Route path="/generator/test-case" element={<TestCaseGenerator />} />
