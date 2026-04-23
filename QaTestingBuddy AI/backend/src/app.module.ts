@@ -6,6 +6,7 @@ import { TestPlanModule } from './test-plan/test-plan.module';
 import { TestCaseModule } from './test-case/test-case.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { DatabaseModule } from './database/database.module';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -13,14 +14,14 @@ import { DatabaseModule } from './database/database.module';
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
     }),
-    // DatabaseModule, // Commented out for mock implementations
+    DatabaseModule,
     LlmModule,
     JiraModule,
     TestPlanModule,
     TestCaseModule,
     DashboardModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [],
 })
 export class AppModule {}

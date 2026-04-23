@@ -19,7 +19,7 @@ async function bootstrap() {
         forbidNonWhitelisted: true,
         transform: true,
     }));
-    app.setGlobalPrefix('api');
+    app.setGlobalPrefix('api', { exclude: ['/'] });
     const port = process.env.PORT || 3000;
     await app.listen(port);
     console.log(`🚀 Testing Buddy AI Backend running on: http://localhost:${port}/api`);

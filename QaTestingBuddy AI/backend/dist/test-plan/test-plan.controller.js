@@ -29,6 +29,9 @@ let TestPlanController = class TestPlanController {
     async getTestPlan(id) {
         return this.testPlanService.getTestPlan(id);
     }
+    async deleteTestPlan(id) {
+        return this.testPlanService.deleteTestPlan(id);
+    }
 };
 exports.TestPlanController = TestPlanController;
 __decorate([
@@ -51,6 +54,13 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], TestPlanController.prototype, "getTestPlan", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], TestPlanController.prototype, "deleteTestPlan", null);
 exports.TestPlanController = TestPlanController = __decorate([
     (0, common_1.Controller)('test-plans'),
     __metadata("design:paramtypes", [test_plan_service_1.TestPlanService])

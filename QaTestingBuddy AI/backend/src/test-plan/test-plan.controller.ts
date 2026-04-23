@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Delete } from '@nestjs/common';
 import { TestPlanService } from './test-plan.service';
 import { GenerateTestPlanDto } from './dto/generate-test-plan.dto';
 
@@ -19,5 +19,10 @@ export class TestPlanController {
   @Get(':id')
   async getTestPlan(@Param('id') id: string) {
     return this.testPlanService.getTestPlan(id);
+  }
+
+  @Delete(':id')
+  async deleteTestPlan(@Param('id') id: string) {
+    return this.testPlanService.deleteTestPlan(id);
   }
 }

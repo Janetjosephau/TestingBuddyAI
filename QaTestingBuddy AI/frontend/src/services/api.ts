@@ -31,6 +31,7 @@ export const testPlanApi = {
   generate: (data: any) => api.post('/test-plans/generate', data),
   getAll: () => api.get('/test-plans'),
   getById: (id: string) => api.get(`/test-plans/${id}`),
+  delete: (id: string) => api.delete(`/test-plans/${id}`),
 };
 
 export const testCaseApi = {
@@ -50,6 +51,7 @@ export const dashboardApi = {
 export const generatorApi = {
   getTestPlans: () => testPlanApi.getAll(),
   generateTestPlan: (data: any) => testPlanApi.generate(data),
+  deleteTestPlan: (id: string) => testPlanApi.delete(id),
   generateTestCases: (data: any) => testCaseApi.generate(data),
 };
 

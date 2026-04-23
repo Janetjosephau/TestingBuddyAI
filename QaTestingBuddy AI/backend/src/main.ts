@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
 import * as compression from 'compression';
@@ -24,7 +24,7 @@ async function bootstrap() {
   }));
 
   // Global prefix for all routes
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api', { exclude: ['/'] });
 
   const port = process.env.PORT || 3000;
   await app.listen(port);

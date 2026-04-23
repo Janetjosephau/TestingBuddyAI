@@ -119,6 +119,17 @@ export class TestPlanService {
     return testPlan;
   }
 
+  async deleteTestPlan(id: string) {
+    // First delete associated test cases to avoid constraint errors
+    await this.prisma.testCase.deleteMany({
+      where: { testPlanId: id },
+    });
+
+    return this.prisma.testPlan.delete({
+      where: { id },
+    });
+  }
+
   private buildTestPlanPrompt(requirement: any, additionalRequirements?: string[]): string {
     return `Generate a comprehensive test plan for the following Jira requirement:
 

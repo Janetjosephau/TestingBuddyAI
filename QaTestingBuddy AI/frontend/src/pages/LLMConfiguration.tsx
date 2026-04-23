@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Save, TestTube, Edit2, Trash2, CheckCircle, AlertCircle, Loader } from 'lucide-react'
+import { Save, TestTube, Edit2, Trash2, CheckCircle, AlertCircle, Loader, Settings, ChevronDown } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { llmApi } from '../services/api'
 
@@ -96,13 +96,8 @@ const LLMConfiguration: React.FC = () => {
 
     setLoading(true)
     try {
-      if (editingId) {
-        await llmApi.saveConfig(formData) 
-        toast.success('Configuration Updated')
-      } else {
-        await llmApi.saveConfig(formData)
-        toast.success('Configuration Saved')
-      }
+      const response = await llmApi.saveConfig(formData)
+      toast.success(response.data.message || (editingId ? 'Configuration Updated' : 'Configuration Saved'))
       
       await fetchConfigs()
       resetForm()
@@ -162,194 +157,94 @@ const LLMConfiguration: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">LLM Configuration</h1>
-          <p className="text-gray-600 mt-2">Configure and manage your Ollama connection</p>
-        </div>
+    <div className="min-h-screen bg-[#f8fafc] p-12">
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden">
+          {/* Header */}
+          <div className="p-10 pb-0 flex items-start space-x-4">
+            <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600">
+              <Settings size={28} />
+            </div>
+            <div>
+              <h1 className="text-3xl font-black text-[#0f172a]">LLM Configuration</h1>
+              <p className="text-slate-500 mt-1 font-medium">Configure your AI Provider for generating test plans and cases.</p>
+            </div>
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-md p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                {editingId ? 'Edit Configuration' : 'New Configuration'}
-              </h2>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Configuration Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="e.g., Local Llama 3"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    LLM Provider
-                  </label>
+          <div className="p-12 space-y-10">
+            {/* Top Row: Provider & Model */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <div className="space-y-3">
+                <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Provider</label>
+                <div className="relative">
                   <select
                     name="provider"
                     value={formData.provider}
-                    disabled
-                    className="w-full px-4 py-2 border border-gray-300 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-not-allowed"
-                  >
-                    {providers.map(p => (
-                      <option key={p.name} value={p.name}>{p.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    API Key (Optional for Ollama)
-                  </label>
-                  <input
-                    type="password"
-                    name="apiKey"
-                    value={formData.apiKey}
                     onChange={handleInputChange}
-                    placeholder="Leave empty or any string if none"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                    className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-blue-500 focus:bg-white transition-all appearance-none"
+                  >
+                    <option value="groq">Groq</option>
+                    <option value="ollama">Ollama</option>
+                    <option value="gemini">Gemini</option>
+                  </select>
+                  <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
+              </div>
 
-                {selectedProvider?.requiresUrl && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      API URL *
-                    </label>
-                    <input
-                      type="text"
-                      name="apiUrl"
-                      value={formData.apiUrl}
-                      onChange={handleInputChange}
-                      placeholder="http://localhost:11434"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Model
-                  </label>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Model ID</label>
+                  <button className="text-[11px] font-bold text-purple-600 hover:text-purple-700 uppercase tracking-tight flex items-center gap-1">
+                    <Edit2 size={12} /> Custom Model
+                  </button>
+                </div>
+                <div className="relative">
                   <select
                     name="model"
                     value={formData.model}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-blue-500 focus:bg-white transition-all appearance-none"
                   >
-                    {selectedProvider?.models.map(model => (
-                      <option key={model} value={model}>{model}</option>
-                    ))}
+                    <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile</option>
+                    <option value="llama-3.1-70b">llama-3.1-70b</option>
+                    <option value="mixtral-8x7b">mixtral-8x7b</option>
                   </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Temperature: {formData.temperature.toFixed(1)}
-                  </label>
-                  <input
-                    type="range"
-                    name="temperature"
-                    min="0"
-                    max="2"
-                    step="0.1"
-                    value={formData.temperature}
-                    onChange={handleInputChange}
-                    className="w-full"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Lower = more deterministic, Higher = more creative</p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Max Tokens
-                  </label>
-                  <input
-                    type="number"
-                    name="maxTokens"
-                    value={formData.maxTokens}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div className="flex gap-4 pt-4">
-                  <button
-                    onClick={handleTestConnection}
-                    disabled={testing}
-                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:bg-yellow-300 font-medium transition-colors"
-                  >
-                    {testing ? <Loader size={18} className="animate-spin" /> : <TestTube size={18} />}
-                    {testing ? 'Testing...' : 'Test Connection'}
-                  </button>
-                  <button
-                    onClick={handleSaveConfiguration}
-                    disabled={loading}
-                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 font-medium transition-colors"
-                  >
-                    {loading ? <Loader size={18} className="animate-spin" /> : <Save size={18} />}
-                    {loading ? 'Saving...' : 'Save Configuration'}
-                  </button>
-                  {editingId && (
-                    <button
-                      onClick={resetForm}
-                      className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  )}
+                  <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
               </div>
             </div>
-          </div>
 
-          <div>
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Saved Configurations</h2>
-              
-              {configs.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No configurations yet</p>
-              ) : (
-                <div className="space-y-3">
-                  {configs.map(config => (
-                    <div key={config.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{config.name}</h3>
-                          <p className="text-sm text-gray-600">{config.provider} • {config.model}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEdit(config)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                          >
-                            <Edit2 size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(config.id)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="mt-3">
-                        {getStatusBadge(config.testStatus)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+            {/* API Key Row */}
+            <div className="space-y-3">
+              <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">API Key</label>
+              <input
+                type="password"
+                name="apiKey"
+                value={formData.apiKey}
+                onChange={handleInputChange}
+                placeholder="••••••••••••••••••••••••••••••••••••••••"
+                className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-medium focus:border-blue-500 focus:bg-white transition-all"
+              />
+              <p className="text-[10px] text-slate-400 italic font-medium px-2">Your API key is stored locally in your browser and never sent to our servers.</p>
+            </div>
+
+            {/* Action Row */}
+            <div className="flex items-center space-x-6 pt-6">
+              <button
+                onClick={handleTestConnection}
+                disabled={testing}
+                className="px-10 h-14 bg-white border-2 border-slate-100 text-slate-700 rounded-2xl font-black hover:bg-slate-50 transition-all disabled:opacity-50"
+              >
+                {testing ? 'Checking...' : 'Test Connection'}
+              </button>
+              <button
+                onClick={handleSaveConfiguration}
+                disabled={loading}
+                className="flex-1 h-14 bg-blue-600 text-white rounded-2xl font-black hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center space-x-3"
+              >
+                <Save size={20} />
+                <span>Save Connection</span>
+              </button>
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import axios from 'axios';
 import { PrismaService } from '../database/prisma.service';
 import { TestJiraConnectionDto } from './dto/test-jira-connection.dto';
@@ -7,34 +7,7 @@ import { CreateJiraConfigDto } from './dto/create-jira-config.dto';
 
 @Injectable()
 export class JiraService {
-  constructor(/* private readonly prisma: PrismaService */) {} // Commented out for mock implementation
-
-  private getMockJiraConfigs() {
-    return [
-      {
-        id: 'jira-1',
-        instanceUrl: 'https://company.atlassian.net',
-        email: 'test@example.com',
-        apiToken: 'encrypted-token-123',
-        projectKey: 'TEST',
-        testStatus: 'connected',
-        lastTestedAt: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        id: 'jira-2',
-        instanceUrl: 'https://anothercompany.atlassian.net',
-        email: 'qa@example.com',
-        apiToken: 'encrypted-token-456',
-        projectKey: 'QA',
-        testStatus: 'connected',
-        lastTestedAt: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    ];
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
   private createAuthHeader(email: string, apiToken: string): string {
     const auth = Buffer.from(`${email}:${apiToken}`).toString('base64');
@@ -46,252 +19,101 @@ export class JiraService {
 
     try {
       const baseUrl = instanceUrl.replace(/\/$/, '');
+      const authHeader = this.createAuthHeader(email, apiToken);
       const headers = {
-        'Authorization': this.createAuthHeader(email, apiToken),
+        'Authorization': authHeader,
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       };
 
-      // Test 1: Get server info
-      const serverInfoResponse = await axios.get(`${baseUrl}/rest/api/3/serverInfo`, { headers });
-      const serverInfo = serverInfoResponse.data;
-
-      // Test 2: Get current user
-      const userResponse = await axios.get(`${baseUrl}/rest/api/3/myself`, { headers });
-      const currentUser = userResponse.data;
-
-      // Test 3: Get projects
-      const projectsResponse = await axios.get(`${baseUrl}/rest/api/3/project?maxResults=5`, { headers });
-      const projects = projectsResponse.data;
-
-      // Test 4: Test project access if project key provided
-      let projectTest = null;
-      if (projectKey) {
-        try {
-          const projectResponse = await axios.get(`${baseUrl}/rest/api/3/project/${projectKey}`, { headers });
-          projectTest = projectResponse.data;
-        } catch (error) {
-          projectTest = { error: 'Project access failed' };
-        }
-      }
+      // Try searching for one issue to verify project access and credentials
+      const searchUrl = `${baseUrl}/rest/api/3/search?jql=project="${projectKey}"&maxResults=1`;
+      const response = await axios.get(searchUrl, { headers });
 
       return {
+        success: true,
         status: 'connected',
-        message: 'Jira connection successful',
-        serverInfo: {
-          title: serverInfo.serverTitle,
-          version: serverInfo.version,
-        },
-        currentUser: {
-          name: currentUser.displayName,
-          email: currentUser.emailAddress,
-        },
-        projectsCount: projects.total || projects.length,
-        projectTest: projectTest,
+        message: `Successfully connected to JIRA project "${projectKey}"!`,
         timestamp: new Date().toISOString(),
       };
-
-    } catch (error) {
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.errorMessages?.[0] || error.message;
       return {
+        success: false,
         status: 'failed',
-        message: `Jira connection failed: ${error.response?.data?.message || error.message}`,
+        message: `JIRA Connection Failed: ${errorMsg}. Please check your credentials and Project Key.`,
         timestamp: new Date().toISOString(),
       };
     }
-  }
-
-  async fetchRequirements(fetchJiraRequirementsDto: FetchJiraRequirementsDto) {
-    const { instanceUrl, email, apiToken, projectKey, issueType, status, jql } = fetchJiraRequirementsDto;
-
-    try {
-      const baseUrl = instanceUrl.replace(/\/$/, '');
-      const headers = {
-        'Authorization': this.createAuthHeader(email, apiToken),
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      };
-
-      // Build JQL query
-      let jqlQuery = jql;
-      if (!jqlQuery) {
-        const conditions = [];
-        if (projectKey) conditions.push(`project = "${projectKey}"`);
-        if (issueType) conditions.push(`issuetype = "${issueType}"`);
-        if (status) conditions.push(`status = "${status}"`);
-        jqlQuery = conditions.join(' AND ') || `project = "${projectKey}"`;
-      }
-
-      // Search for issues
-      const searchResponse = await axios.get(
-        `${baseUrl}/rest/api/3/search?jql=${encodeURIComponent(jqlQuery)}&maxResults=50&fields=issuetype,summary,description,status,priority,created,updated`,
-        { headers }
-      );
-
-      const issues = searchResponse.data.issues || [];
-
-      // Transform to our requirement format
-      const requirements = issues.map(issue => ({
-        issueId: issue.id,
-        key: issue.key,
-        title: issue.fields.summary,
-        description: issue.fields.description || '',
-        issueType: issue.fields.issuetype.name,
-        status: issue.fields.status.name,
-        priority: issue.fields.priority?.name || 'Medium',
-        created: issue.fields.created,
-        updated: issue.fields.updated,
-      }));
-
-      return {
-        success: true,
-        requirements,
-        total: requirements.length,
-        jql: jqlQuery,
-        timestamp: new Date().toISOString(),
-      };
-
-    } catch (error) {
-      return {
-        success: false,
-        error: `Failed to fetch requirements: ${error.response?.data?.message || error.message}`,
-        timestamp: new Date().toISOString(),
-      };
-    }
-  }
-
-  async getProjects(credentials: TestJiraConnectionDto) {
-    const { instanceUrl, email, apiToken } = credentials;
-
-    try {
-      const baseUrl = instanceUrl.replace(/\/$/, '');
-      const headers = {
-        'Authorization': this.createAuthHeader(email, apiToken),
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      };
-
-      const response = await axios.get(`${baseUrl}/rest/api/3/project?maxResults=50`, { headers });
-      const projects = response.data;
-
-      return {
-        success: true,
-        projects: projects.map(project => ({
-          key: project.key,
-          name: project.name,
-          id: project.id,
-        })),
-        total: projects.length,
-      };
-
-    } catch (error) {
-      return {
-        success: false,
-        error: `Failed to fetch projects: ${error.response?.data?.message || error.message}`,
-      };
-    }
-  }
-
-  // CRUD Operations for Jira Configs
-
-  private encryptApiToken(token: string): string {
-    return Buffer.from(token).toString('base64');
-  }
-
-  private decryptApiToken(encryptedToken: string): string {
-    return Buffer.from(encryptedToken, 'base64').toString();
-  }
-
-  private maskApiToken(token: string): string {
-    if (token.length <= 8) return '*'.repeat(token.length);
-    return token.substring(0, 4) + '*'.repeat(token.length - 8) + token.substring(token.length - 4);
   }
 
   async createConfig(createJiraConfigDto: CreateJiraConfigDto) {
-    // Mock implementation - simulate connection test and create config
-    const testResult = await this.testConnection({
-      instanceUrl: createJiraConfigDto.instanceUrl,
-      email: createJiraConfigDto.email,
-      apiToken: createJiraConfigDto.apiToken,
-      projectKey: createJiraConfigDto.projectKey,
-    });
+    try {
+      const config = await this.prisma.jiraConfig.create({
+        data: {
+          instanceUrl: createJiraConfigDto.instanceUrl,
+          email: createJiraConfigDto.email,
+          apiToken: createJiraConfigDto.apiToken,
+          projectKey: createJiraConfigDto.projectKey,
+          testStatus: 'untested',
+        },
+      });
 
-    if (testResult.status !== 'connected') {
-      throw new Error(`Cannot save config: ${testResult.message}`);
+      return {
+        ...config,
+        message: 'JIRA Connection details saved successfully!'
+      };
+    } catch (error: any) {
+      throw new BadRequestException(`Failed to save JIRA configuration: ${error.message}`);
     }
-
-    // Create mock config
-    const newConfig = {
-      id: `jira-${Date.now()}`,
-      instanceUrl: createJiraConfigDto.instanceUrl,
-      email: createJiraConfigDto.email,
-      apiToken: this.maskApiToken(createJiraConfigDto.apiToken), // Masked for response
-      projectKey: createJiraConfigDto.projectKey,
-      testStatus: 'connected',
-      lastTestedAt: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    return newConfig;
   }
 
   async getAllConfigs() {
-    // Mock implementation - return mock configs
-    const mockConfigs = this.getMockJiraConfigs();
-    return mockConfigs.map(config => ({
+    const configs = await this.prisma.jiraConfig.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    return configs.map(config => ({
       ...config,
       apiToken: this.maskApiToken(config.apiToken),
     }));
   }
 
   async getConfig(id: string) {
-    // Mock implementation - find config by id
-    const mockConfigs = this.getMockJiraConfigs();
-    const config = mockConfigs.find(c => c.id === id);
+    const config = await this.prisma.jiraConfig.findUnique({
+      where: { id },
+    });
     if (!config) throw new NotFoundException('Jira configuration not found');
     return { ...config, apiToken: this.maskApiToken(config.apiToken) };
   }
 
   async updateConfig(id: string, updateJiraConfigDto: Partial<CreateJiraConfigDto>) {
-    // Mock implementation - find and update config
-    const mockConfigs = this.getMockJiraConfigs();
-    const existingConfig = mockConfigs.find(c => c.id === id);
-    if (!existingConfig) throw new NotFoundException('Jira configuration not found');
-
-    if (updateJiraConfigDto.apiToken || updateJiraConfigDto.instanceUrl || updateJiraConfigDto.email) {
-      const testData = {
-        instanceUrl: updateJiraConfigDto.instanceUrl ?? existingConfig.instanceUrl,
-        email: updateJiraConfigDto.email ?? existingConfig.email,
-        apiToken: updateJiraConfigDto.apiToken ?? existingConfig.apiToken,
-        projectKey: updateJiraConfigDto.projectKey ?? existingConfig.projectKey,
+    try {
+      const updatedConfig = await this.prisma.jiraConfig.update({
+        where: { id },
+        data: updateJiraConfigDto,
+      });
+      return {
+        ...updatedConfig,
+        message: 'JIRA Connection details updated successfully!'
       };
-
-      const testResult = await this.testConnection(testData);
-      if (testResult.status !== 'connected') {
-        throw new Error(`Cannot update config: ${testResult.message}`);
-      }
+    } catch (error: any) {
+      throw new BadRequestException(`Failed to update JIRA configuration: ${error.message}`);
     }
-
-    // Update the config
-    const updatedConfig = {
-      ...existingConfig,
-      ...updateJiraConfigDto,
-      apiToken: updateJiraConfigDto.apiToken ? this.maskApiToken(updateJiraConfigDto.apiToken) : existingConfig.apiToken,
-      testStatus: 'connected',
-      lastTestedAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    return updatedConfig;
   }
 
   async deleteConfig(id: string) {
-    // Mock implementation - check if config exists
-    const mockConfigs = this.getMockJiraConfigs();
-    const exists = mockConfigs.some(c => c.id === id);
-    if (!exists) throw new NotFoundException('Jira configuration not found');
+    try {
+      await this.prisma.jiraConfig.delete({
+        where: { id },
+      });
+      return { message: 'JIRA configuration deleted successfully' };
+    } catch (error: any) {
+      throw new NotFoundException('Jira configuration not found or could not be deleted');
+    }
+  }
 
-    // In a real implementation, this would be deleted from database
-    return { message: 'Jira configuration deleted successfully' };
+  private maskApiToken(token: string): string {
+    if (!token || token.length <= 8) return '********';
+    return token.substring(0, 4) + '****' + token.substring(token.length - 4);
   }
 }
