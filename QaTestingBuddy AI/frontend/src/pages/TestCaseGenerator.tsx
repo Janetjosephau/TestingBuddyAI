@@ -151,12 +151,37 @@ const TestCaseGenerator: React.FC = () => {
   }
 
   const handleUploadToRally = async () => {
-    setUploading(true)
-    setTimeout(() => {
-      setUploading(false)
-      toast.success('Successfully uploaded to Rally!')
-    }, 2000)
-  }
+    if (generatedTestCases.length === 0) {
+      toast.error('No test cases to upload');
+      return;
+    }
+    
+    setUploading(true);
+    try {
+      const rallyConfigs = await rallyApi.getConfigs();
+      if (!rallyConfigs.data || rallyConfigs.data.length === 0) {
+        toast.error('Please configure Rally connection first');
+        return;
+      }
+      
+      const res = await rallyApi.upload({
+        rallyConfigId: rallyConfigs.data[0].id,
+        testCases: generatedTestCases,
+        storyKey: selectedIssue?.key
+      });
+      
+      if (res.data.success) {
+        toast.success(res.data.message);
+        setActiveTab('fetch'); // Back to start after success
+      } else {
+        toast.error(res.data.message || 'Upload failed');
+      }
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || 'Connection error with Rally');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#f8fafc] p-8 md:p-12">

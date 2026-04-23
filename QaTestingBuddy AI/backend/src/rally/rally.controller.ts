@@ -2,6 +2,7 @@ import { Controller, Post, Get, Delete, Body, Param } from '@nestjs/common';
 import { RallyService } from './rally.service';
 import { TestRallyConnectionDto } from './dto/test-rally-connection.dto';
 import { CreateRallyConfigDto } from './dto/create-rally-config.dto';
+import { UploadToRallyDto } from './dto/upload-to-rally.dto';
 
 @Controller('rally')
 export class RallyController {
@@ -10,6 +11,11 @@ export class RallyController {
   @Post('test-connection')
   async testConnection(@Body() dto: TestRallyConnectionDto) {
     return this.rallyService.testConnection(dto);
+  }
+
+  @Post('upload')
+  async uploadTestCases(@Body() dto: UploadToRallyDto) {
+    return this.rallyService.uploadTestCases(dto);
   }
 
   @Post('configs')

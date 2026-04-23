@@ -32,6 +32,7 @@ export const rallyApi = {
   saveConfig: (data: any) => api.post('/rally/configs', data),
   getConfigs: () => api.get('/rally/configs'),
   deleteConfig: (id: string) => api.delete(`/rally/configs/${id}`),
+  upload: (data: any) => api.post('/rally/upload', data),
 };
 
 export const testPlanApi = {

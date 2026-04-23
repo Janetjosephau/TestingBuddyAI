@@ -112,6 +112,23 @@ export class LlmService {
     }
   }
 
+  async generateText(prompt: string, configId: string) {
+    const config = await this.prisma.lLMConfig.findUnique({
+      where: { id: configId }
+    });
+    
+    if (!config) throw new NotFoundException('LLM configuration not found');
+
+    const adapter = this.adapterFactory.getAdapter(config.provider);
+    const result = await adapter.generateText(prompt, config);
+
+    if (!result.success) {
+      throw new BadRequestException(`Generation failed: ${result.error}`);
+    }
+
+    return result.text;
+  }
+
   private maskApiKey(apiKey: string): string {
     if (!apiKey || apiKey.length <= 8) return '********';
     return apiKey.substring(0, 4) + '****' + apiKey.substring(apiKey.length - 4);
