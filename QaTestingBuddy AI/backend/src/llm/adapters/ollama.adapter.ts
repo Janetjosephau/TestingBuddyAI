@@ -8,7 +8,8 @@ export class OllamaAdapter implements LLMAdapter {
 
   async testConnection(config: LLMConfig): Promise<{ success: boolean; error?: string; models?: string[] }> {
     try {
-      const response = await axios.get(`${this.baseUrl}/api/tags`, {
+      const url = config.apiUrl?.replace(/\/$/, '') || this.baseUrl;
+      const response = await axios.get(`${url}/api/tags`, {
         timeout: 5000,
       });
 
@@ -38,8 +39,9 @@ export class OllamaAdapter implements LLMAdapter {
         },
       };
 
-      const response = await axios.post(`${this.baseUrl}/api/generate`, payload, {
-        timeout: 30000, // 30 seconds timeout for generation
+      const url = config.apiUrl?.replace(/\/$/, '') || this.baseUrl;
+      const response = await axios.post(`${url}/api/generate`, payload, {
+        timeout: 60000, // 60 seconds timeout for generation
       });
 
       if (response.data && response.data.response) {
