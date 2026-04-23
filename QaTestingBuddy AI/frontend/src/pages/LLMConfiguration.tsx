@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Save, TestTube, Edit2, Trash2, CheckCircle, AlertCircle, Loader, Settings, ChevronDown, RefreshCw } from 'lucide-react'
+import { Save, Edit2, Trash2, CheckCircle, AlertCircle, Settings, ChevronDown, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { llmApi } from '../services/api'
 
@@ -26,7 +26,7 @@ const LLMConfiguration: React.FC = () => {
     name: '',
     apiKey: '',
     apiUrl: 'http://localhost:11434',
-    model: 'llama2',
+    model: 'llama3',
     temperature: 0.7,
     maxTokens: 2048
   })
@@ -48,6 +48,12 @@ const LLMConfiguration: React.FC = () => {
       name: 'openai',
       label: 'OpenAI',
       models: ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'],
+      requiresUrl: false
+    },
+    {
+      name: 'groq',
+      label: 'Groq',
+      models: ['llama-3.3-70b-versatile', 'llama-3.1-70b', 'mixtral-8x7b'],
       requiresUrl: false
     }
   ]
@@ -75,19 +81,9 @@ const LLMConfiguration: React.FC = () => {
     }))
   }
 
-  const handleProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const provider = e.target.value
-    setFormData(prev => ({
-      ...prev,
-      provider,
-      model: providers.find(p => p.name === provider)?.models[0] || ''
-    }))
-  }
-
   const handleTestConnection = async () => {
     setTesting(true)
     try {
-      // Create a copy of formData without the 'name' property for testing
       const { name, ...testData } = formData
       const response = await llmApi.testConnection(testData)
       
@@ -111,8 +107,13 @@ const LLMConfiguration: React.FC = () => {
 
     setLoading(true)
     try {
-      const response = await llmApi.saveConfig(formData)
-      toast.success(response.data.message || (editingId ? 'Configuration Updated' : 'Configuration Saved'))
+      if (editingId) {
+        await llmApi.updateConfig(editingId, formData)
+        toast.success('Configuration Updated')
+      } else {
+        const response = await llmApi.saveConfig(formData)
+        toast.success(response.data.message || 'Configuration Saved')
+      }
       
       await fetchConfigs()
       resetForm()
@@ -126,10 +127,10 @@ const LLMConfiguration: React.FC = () => {
   const handleEdit = (config: LLMConfig) => {
     setEditingId(config.id)
     setFormData({
-      provider: 'ollama',
+      provider: config.provider,
       name: config.name,
       apiKey: '',
-      apiUrl: 'http://localhost:11434',
+      apiUrl: (config as any).apiUrl || 'http://localhost:11434',
       model: config.model,
       temperature: config.temperature,
       maxTokens: config.maxTokens
@@ -154,7 +155,7 @@ const LLMConfiguration: React.FC = () => {
       name: '',
       apiKey: '',
       apiUrl: 'http://localhost:11434',
-      model: 'llama2',
+      model: 'llama3',
       temperature: 0.7,
       maxTokens: 2048
     })
@@ -163,17 +164,17 @@ const LLMConfiguration: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     if (status === 'connected') {
-      return <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800"><CheckCircle size={14} className="mr-1" /> Connected</span>
+      return <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-emerald-100 text-emerald-800"><CheckCircle size={14} className="mr-1" /> Connected</span>
     }
     if (status === 'failed') {
       return <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800"><AlertCircle size={14} className="mr-1" /> Failed</span>
     }
-    return <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">Untested</span>
+    return <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-800">Untested</span>
   }
 
   return (
     <div className="min-h-screen bg-[#f8fafc] p-12">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto space-y-12">
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden">
           {/* Header */}
           <div className="p-10 pb-0 flex items-start space-x-4">
@@ -187,7 +188,6 @@ const LLMConfiguration: React.FC = () => {
           </div>
 
           <div className="p-12 space-y-10">
-            {/* Configuration Name */}
             <div className="space-y-3">
               <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Configuration Name *</label>
               <input
@@ -195,12 +195,11 @@ const LLMConfiguration: React.FC = () => {
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                placeholder="e.g. My Primary GPT-4 / Local Ollama"
-                className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-blue-500 focus:bg-white transition-all"
+                placeholder="e.g. Primary Ollama / Gemini Pro"
+                className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-blue-500 focus:bg-white transition-all outline-none"
               />
             </div>
 
-            {/* Top Row: Provider & Model */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <div className="space-y-3">
                 <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Provider</label>
@@ -209,11 +208,9 @@ const LLMConfiguration: React.FC = () => {
                     name="provider"
                     value={formData.provider}
                     onChange={handleInputChange}
-                    className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-blue-500 focus:bg-white transition-all appearance-none"
+                    className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-blue-500 appearance-none outline-none"
                   >
-                    <option value="groq">Groq</option>
-                    <option value="ollama">Ollama</option>
-                    <option value="gemini">Gemini</option>
+                    {providers.map(p => <option key={p.name} value={p.name}>{p.label}</option>)}
                   </select>
                   <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
@@ -223,70 +220,58 @@ const LLMConfiguration: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Model ID</label>
                   {formData.provider === 'ollama' && (
-                    <button 
-                      onClick={handleTestConnection}
-                      className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 uppercase tracking-tight flex items-center gap-1"
-                    >
+                    <button onClick={handleTestConnection} className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
                       <RefreshCw size={12} className={testing ? 'animate-spin' : ''} /> Fetch Models
                     </button>
                   )}
-                  <button className="text-[11px] font-bold text-purple-600 hover:text-purple-700 uppercase tracking-tight flex items-center gap-1">
-                    <Edit2 size={12} /> Custom Model
-                  </button>
                 </div>
                 <div className="relative">
                   <select
                     name="model"
                     value={formData.model}
                     onChange={handleInputChange}
-                    className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-blue-500 focus:bg-white transition-all appearance-none"
+                    className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-blue-500 appearance-none outline-none"
                   >
-                    {selectedProvider?.models.map(m => (
-                      <option key={m} value={m}>{m}</option>
-                    ))}
+                    {selectedProvider?.models.map(m => <option key={m} value={m}>{m}</option>)}
                   </select>
                   <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
               </div>
             </div>
 
-            {/* API URL Row (Shown for Ollama) */}
             {selectedProvider?.requiresUrl && (
               <div className="space-y-3">
-                <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">API Instance URL (Ollama Endpoint)</label>
+                <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Endpoint URL</label>
                 <input
                   type="text"
                   name="apiUrl"
                   value={formData.apiUrl}
                   onChange={handleInputChange}
-                  placeholder="e.g. http://localhost:11434"
-                  className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-blue-500 focus:bg-white transition-all"
+                  placeholder="http://localhost:11434"
+                  className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold outline-none focus:border-blue-500"
                 />
               </div>
             )}
 
-            {/* API Key Row */}
             <div className="space-y-3">
-              <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">API Key / Token (Leave blank for Ollama)</label>
+              <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">API Key / Token</label>
               <input
                 type="password"
                 name="apiKey"
                 value={formData.apiKey}
                 onChange={handleInputChange}
-                placeholder="••••••••••••••••••••••••••••••••••••••••"
-                className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-medium focus:border-blue-500 focus:bg-white transition-all"
+                placeholder="••••••••••••••••••••••••••••"
+                className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-medium outline-none focus:border-blue-500"
               />
-              <p className="text-[10px] text-slate-400 italic font-medium px-2">Your API key is stored securely in the database.</p>
             </div>
 
-            {/* Action Row */}
             <div className="flex items-center space-x-6 pt-6">
               <button
                 onClick={handleTestConnection}
                 disabled={testing}
                 className="flex-1 h-14 bg-white border-2 border-slate-100 text-slate-700 rounded-2xl font-black hover:bg-slate-50 transition-all disabled:opacity-50"
               >
-                {testing ? 'Checking...' : 'Test Connection'}
+                {testing ? 'Probing...' : 'Test Connection'}
               </button>
               <button
                 onClick={handleSaveConfiguration}
@@ -294,9 +279,73 @@ const LLMConfiguration: React.FC = () => {
                 className="flex-1 h-14 bg-blue-600 text-white rounded-2xl font-black hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center space-x-3"
               >
                 <Save size={20} />
-                <span>Save Connection</span>
+                <span>{editingId ? 'Update Configuration' : 'Save Connection'}</span>
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* List of Saved Connections */}
+        <div className="space-y-6">
+          <h2 className="text-xl font-black text-slate-900 flex items-center space-x-3 px-4">
+            <span className="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-sm shadow-sm">{configs.length}</span>
+            <span>Saved AI Connections</span>
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {configs.map((config) => (
+              <div key={config.id} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xs uppercase ${
+                      config.provider === 'ollama' ? 'bg-emerald-50 text-emerald-600' :
+                      config.provider === 'gemini' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'
+                    }`}>
+                      {config.provider.substring(0, 3)}
+                    </div>
+                    <div>
+                      <h3 className="font-black text-slate-900">{config.name}</h3>
+                      <p className="text-xs font-bold text-slate-400">{config.model} • {config.provider}</p>
+                    </div>
+                  </div>
+                  <div className="flex space-x-1">
+                    <button onClick={() => handleEdit(config)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                      <Edit2 size={16} />
+                    </button>
+                    <button onClick={() => handleDelete(config.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="mt-6 pt-6 border-t border-slate-50 flex items-center justify-between">
+                  {getStatusBadge(config.testStatus)}
+                  <button 
+                    onClick={() => {
+                      setFormData({
+                        provider: config.provider,
+                        name: config.name,
+                        apiKey: '',
+                        apiUrl: (config as any).apiUrl || 'http://localhost:11434',
+                        model: config.model,
+                        temperature: config.temperature || 0.7,
+                        maxTokens: config.maxTokens || 2048
+                      });
+                      handleTestConnection();
+                    }}
+                    className="text-[11px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest flex items-center space-x-2"
+                  >
+                    <RefreshCw size={12} />
+                    <span>Re-Test</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+            {configs.length === 0 && (
+              <div className="md:col-span-2 p-12 text-center bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2rem]">
+                <p className="text-slate-400 font-bold italic">No active connections found. Configure your first provider above!</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
