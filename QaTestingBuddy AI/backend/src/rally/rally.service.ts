@@ -4,6 +4,7 @@ import { PrismaService } from '../database/prisma.service';
 import { CreateRallyConfigDto } from './dto/create-rally-config.dto';
 import { TestRallyConnectionDto } from './dto/test-rally-connection.dto';
 import { UploadToRallyDto } from './dto/upload-to-rally.dto';
+import { RALLY_FETCH_FIELDS, RALLY_FIELD_MAP, RALLY_API } from './rally.constants';
 
 @Injectable()
 export class RallyService {
@@ -13,7 +14,7 @@ export class RallyService {
     const { instanceUrl, apiKey } = dto;
     try {
       const baseUrl = instanceUrl.replace(/\/$/, '');
-      const response = await axios.get(`${baseUrl}/slm/webservice/v2.0/subscription`, {
+      const response = await axios.get(`${baseUrl}${RALLY_API.subscription}`, {
         headers: {
           'zsessionid': apiKey,
           'Accept': 'application/json',
@@ -94,7 +95,7 @@ export class RallyService {
           }
         };
 
-        const createUrl = `${baseUrl}/slm/webservice/v2.0/testcase/create`;
+        const createUrl = `${baseUrl}${RALLY_API.testCaseCreate}`;
         const response = await axios.post(createUrl, payload, { headers });
 
         if (response.data?.CreateResult?.Errors?.length > 0) {
@@ -129,20 +130,20 @@ export class RallyService {
     };
     
     // Example query: (FormattedID = "US31488")
-    const apiQuery = query.includes('=') ? query : `(FormattedID = "${query}")`;
-    const url = `${baseUrl}/slm/webservice/v2.0/hierarchicalrequirement?query=${encodeURIComponent(apiQuery)}&fetch=true`;
+    const apiQuery = query.includes('=') ? query : `(${RALLY_FIELD_MAP.key} = "${query}")`;
+    const url = `${baseUrl}${RALLY_API.userStory}?query=${encodeURIComponent(apiQuery)}&fetch=${RALLY_FETCH_FIELDS}`;
     
     try {
       const response = await axios.get(url, { headers });
       const results = response.data?.QueryResult?.Results || [];
       
       const formatted = results.map(story => ({
-        key: story.FormattedID,
-        title: story._refObjectName || story.Name,
-        description: story.Description || '',
-        issueType: 'User Story',
-        status: story.ScheduleState || 'Defined',
-        priority: story.Priority?.Name || 'None'
+        key:         story[RALLY_FIELD_MAP.key],
+        title:       story[RALLY_FIELD_MAP.title] || story[RALLY_FIELD_MAP.titleFallback],
+        description: story[RALLY_FIELD_MAP.description] || '',
+        issueType:   RALLY_FIELD_MAP.issueType,
+        status:      story[RALLY_FIELD_MAP.status] || RALLY_FIELD_MAP.statusDefault,
+        priority:    story[RALLY_FIELD_MAP.priority]?.Name || RALLY_FIELD_MAP.priorityDefault
       }));
       
       return { success: true, requirements: formatted };
