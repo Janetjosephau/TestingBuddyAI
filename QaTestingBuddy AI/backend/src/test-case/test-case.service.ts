@@ -4,6 +4,7 @@ import { LlmService } from '../llm/llm.service';
 import { CreateTestCaseDto } from './dto/create-test-case.dto';
 import { UpdateTestCaseDto } from './dto/update-test-case.dto';
 import { GenerateTestCasesDto } from './dto/generate-test-cases.dto';
+import { parseRobustJson } from '../utils/json-parser';
 
 @Injectable()
 export class TestCaseService {
@@ -40,9 +41,7 @@ export class TestCaseService {
     try {
       const resultText = await this.llmService.generateText(prompt, llmConfigId);
       
-      // Basic cleanup of potential markdown bloat
-      const cleanedJson = resultText.replace(/```json/g, '').replace(/```/g, '').trim();
-      const generatedCases = JSON.parse(cleanedJson);
+      const generatedCases = parseRobustJson(resultText);
 
       const savedCases = [];
 

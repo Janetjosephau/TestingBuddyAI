@@ -44,7 +44,7 @@ export class OllamaAdapter implements LLMAdapter {
 
       const url = config.apiUrl?.replace(/\/$/, '') || this.baseUrl;
       const response = await axios.post(`${url}/api/generate`, payload, {
-        timeout: 120000, // 2 minutes for slow local models
+        timeout: 300000, // 5 minutes for slow local models
         headers: {
           'ngrok-skip-browser-warning': 'true'
         }

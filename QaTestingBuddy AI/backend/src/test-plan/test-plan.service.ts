@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { LlmService } from '../llm/llm.service';
 import { GenerateTestPlanDto } from './dto/generate-test-plan.dto';
+import { parseRobustJson } from '../utils/json-parser';
 
 @Injectable()
 export class TestPlanService {
@@ -65,33 +66,52 @@ export class TestPlanService {
     ];
   }
 
-  async generateTestPlan(generateTestPlanDto: GenerateTestPlanDto) {
-    const { jiraIssueId, llmConfigId, exportFormat } = generateTestPlanDto;
+  async generateTestPlan(dto: GenerateTestPlanDto) {
+    const { jiraIssueId, llmConfigId, context } = dto;
 
-    // In a real implementation, we would call LLM here. 
-    // For now, staying with the structured generation but SAVING it.
-    const content = {
-      objectives: ['Verify core functionality', 'Test edge cases'],
-      scope: { inScope: ['UI'], outOfScope: ['Security'] },
-      strategy: 'Manual',
-      resources: ['Staging'],
-      timeline: '1 week',
-      exitCriteria: ['All pass']
-    };
+    const prompt = `
+      You are an expert QA Manager. Generate a comprehensive test plan based on the following requirement:
+      
+      CONTEXT:
+      ${context || 'No specific requirement details provided. Generate a general test plan.'}
 
-    const testPlan = await this.prisma.testPlan.create({
-      data: {
-        name: `Test Plan for ${jiraIssueId}`,
-        description: 'Generated test plan',
-        jiraIssueId,
-        generatedBy: llmConfigId,
-        content: JSON.stringify(content),
-        status: 'draft',
-        exportFormat: exportFormat || 'json',
-      },
-    });
+      Return ONLY a JSON object with this structure:
+      {
+        "objectives": ["string"],
+        "scope": { "inScope": ["string"], "outOfScope": ["string"] },
+        "strategy": "string",
+        "resources": ["string"],
+        "timeline": "string",
+        "exitCriteria": ["string"]
+      }
+      
+      CRITICAL: Return ONLY valid JSON starting with { and ending with }. Do NOT include conversational text.
+    `;
 
-    return testPlan;
+    try {
+      const resultText = await this.llmService.generateText(prompt, llmConfigId);
+      const planData = parseRobustJson(resultText);
+
+      const testPlan = await this.prisma.testPlan.create({
+        data: {
+          name: `Test Plan for ${jiraIssueId}`,
+          description: typeof planData.scope === 'string' ? planData.scope : (planData.scope?.inScope?.[0] || 'Generated test plan'),
+          jiraIssueId,
+          generatedBy: llmConfigId,
+          content: JSON.stringify(planData),
+          status: 'draft'
+        },
+      });
+
+      return {
+        success: true,
+        testPlan,
+        data: planData
+      };
+    } catch (error: any) {
+      console.error('Test Plan Generation Error:', error);
+      throw new BadRequestException(`Failed to generate test plan: ${error.message}`);
+    }
   }
 
   async getAllTestPlans() {

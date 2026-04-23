@@ -22,6 +22,14 @@ export class GenerateTestPlanDto {
   additionalRequirements?: string[];
 
   @IsOptional()
+  @IsString()
+  context?: string;
+
+  @IsOptional()
   @IsEnum(['pdf', 'json'])
   exportFormat?: string;
+
+  @IsOptional()
+  @IsString()
+  requirementId?: string;
 }
