@@ -15,6 +15,7 @@ interface RallyStory {
   key: string
   title: string
   description: string
+  notes?: string
   issueType: string
   status: string
   priority: string
@@ -98,7 +99,12 @@ const TestPlanGenerator: React.FC = () => {
         jiraIssueId: selectedIssue?.key || 'MANUAL',
         jiraRequirement: selectedIssue ? JSON.stringify(selectedIssue) : undefined,
         llmConfigId: selectedLlmConfigId || llmConfigs[0]?.id,
-        additionalRequirements: additionalContext ? [additionalContext] : undefined,
+        context: `
+Title: ${selectedIssue?.title || 'N/A'}
+Description: ${selectedIssue?.description || 'N/A'}
+Notes/Requirements: ${selectedIssue?.notes || 'N/A'}
+Additional Context: ${additionalContext || 'N/A'}
+`.trim()
       })
 
       setGeneratedContent(res.data)

@@ -19,10 +19,10 @@ export const RALLY_FETCH_FIELDS = [
   'FormattedID',      // e.g. US31488
   'Name',             // Story title
   'Description',      // Full HTML description / acceptance criteria
+  'Notes',            // Additional notes or requirements
   'ScheduleState',    // e.g. Defined, In-Progress, Completed, Accepted
   'Priority',         // e.g. High, Medium, Low, None
   // ── Optional fields (uncomment to enable) ──
-  // 'Notes',         // Additional notes on the story
   // 'Owner',         // Assigned team member
   // 'Iteration',     // Sprint/Iteration the story belongs to
   // 'Release',       // Release the story is targeted for
@@ -40,6 +40,7 @@ export const RALLY_FIELD_MAP = {
   title:       '_refObjectName',    // Display name (falls back to Name)
   titleFallback: 'Name',            // Fallback if _refObjectName is empty
   description: 'Description',       // Story description / acceptance criteria
+  notes:       'Notes',             // Additional requirements/notes
   status:      'ScheduleState',     // Workflow state
   statusDefault: 'Defined',         // Default if ScheduleState is missing
   priority:    'Priority',          // Priority object (access .Name on it)

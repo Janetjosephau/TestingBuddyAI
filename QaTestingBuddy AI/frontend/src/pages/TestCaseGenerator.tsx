@@ -23,6 +23,7 @@ interface RallyRequirement {
   key: string
   title: string
   description: string
+  notes?: string
   issueType: string
   status: string
   priority: string
@@ -97,7 +98,11 @@ const TestCaseGenerator: React.FC = () => {
         testPlanId: 'manual-gen',
         llmConfigId: selectedLlmId,
         additionalInstructions: additionalContext,
-        requirementBody: `${selectedIssue.title}\n\n${selectedIssue.description || ''}`
+        requirementBody: `
+Title: ${selectedIssue.title}
+Description: ${selectedIssue.description || 'N/A'}
+Notes/Requirements: ${selectedIssue.notes || 'N/A'}
+`.trim()
       })
 
       if (res.data.success) {

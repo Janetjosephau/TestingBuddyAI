@@ -141,6 +141,7 @@ export class RallyService {
         key:         story[RALLY_FIELD_MAP.key],
         title:       story[RALLY_FIELD_MAP.title] || story[RALLY_FIELD_MAP.titleFallback],
         description: story[RALLY_FIELD_MAP.description] || '',
+        notes:       story[RALLY_FIELD_MAP.notes] || '',
         issueType:   RALLY_FIELD_MAP.issueType,
         status:      story[RALLY_FIELD_MAP.status] || RALLY_FIELD_MAP.statusDefault,
         priority:    story[RALLY_FIELD_MAP.priority]?.Name || RALLY_FIELD_MAP.priorityDefault
