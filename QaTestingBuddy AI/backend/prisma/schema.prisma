@@ -35,7 +35,7 @@ model JiraConfig {
   instanceUrl  String
   email        String
   apiToken     String   // Will be encrypted
-  projectKey   String
+  projectKey   String?
   createdAt    DateTime @default(now())
   lastTestedAt DateTime?
   testStatus   String   @default("untested") // "untested" | "connected" | "failed"
@@ -45,6 +45,20 @@ model JiraConfig {
   testPlans    TestPlan[]
 
   @@map("jira_configs")
+}
+
+model RallyConfig {
+  id            String   @id @default(cuid())
+  instanceUrl   String   @default("https://rally1.rallydev.com")
+  apiKey        String   // API Key (ZSESSIONID)
+  workspaceName String?
+  projectName   String?
+  createdAt     DateTime @default(now())
+  lastTestedAt  DateTime?
+  testStatus    String   @default("untested") // "untested" | "connected" | "failed"
+  testError     String?
+
+  @@map("rally_configs")
 }
 
 model TestPlan {

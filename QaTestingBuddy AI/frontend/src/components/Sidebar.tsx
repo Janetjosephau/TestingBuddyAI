@@ -4,6 +4,7 @@ import {
   Home,
   Zap,
   Database,
+  Target,
   FileText,
   FileCheck,
   BarChart,
@@ -81,6 +82,17 @@ const Sidebar: React.FC = () => {
                 >
                   <Database size={22} className={isActive('/connections/jira') ? 'fill-blue-500/10' : ''} />
                   <span className="font-bold">JIRA Connection</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/connections/rally"
+                  className={`flex items-center space-x-3 transition-all duration-200 ${
+                    isActive('/connections/rally') ? 'text-emerald-500' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Target size={22} className={isActive('/connections/rally') ? 'fill-emerald-500/10' : ''} />
+                  <span className="font-bold">Rally Connection</span>
                 </Link>
               </li>
             </ul>

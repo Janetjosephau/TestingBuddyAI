@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { LlmModule } from './llm/llm.module';
 import { JiraModule } from './jira/jira.module';
+import { RallyModule } from './rally/rally.module';
 import { TestPlanModule } from './test-plan/test-plan.module';
 import { TestCaseModule } from './test-case/test-case.module';
 import { DashboardModule } from './dashboard/dashboard.module';
@@ -17,6 +18,7 @@ import { AppController } from './app.controller';
     DatabaseModule,
     LlmModule,
     JiraModule,
+    RallyModule,
     TestPlanModule,
     TestCaseModule,
     DashboardModule,

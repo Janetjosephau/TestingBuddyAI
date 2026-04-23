@@ -27,6 +27,13 @@ export const jiraApi = {
   getProjects: (data: any) => api.post('/jira/projects', data),
 };
 
+export const rallyApi = {
+  testConnection: (data: any) => api.post('/rally/test-connection', data),
+  saveConfig: (data: any) => api.post('/rally/configs', data),
+  getConfigs: () => api.get('/rally/configs'),
+  deleteConfig: (id: string) => api.delete(`/rally/configs/${id}`),
+};
+
 export const testPlanApi = {
   generate: (data: any) => api.post('/test-plans/generate', data),
   getAll: () => api.get('/test-plans'),
