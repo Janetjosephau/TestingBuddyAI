@@ -19,7 +19,8 @@ export const RALLY_FETCH_FIELDS = [
   'FormattedID',      // e.g. US31488
   'Name',             // Story title
   'Description',      // Full HTML description / acceptance criteria
-  'Notes',            // Additional notes or requirements
+  'Notes',            // Additional notes
+  'c_Requirements',   // Custom field: Requirements section
   'ScheduleState',    // e.g. Defined, In-Progress, Completed, Accepted
   'Priority',         // e.g. High, Medium, Low, None
   // ── Optional fields (uncomment to enable) ──
@@ -36,16 +37,17 @@ export const RALLY_FETCH_FIELDS = [
 // in the returned requirement object
 // ─────────────────────────────────────────────
 export const RALLY_FIELD_MAP = {
-  key:         'FormattedID',       // Unique story ID (e.g. US31488)
-  title:       '_refObjectName',    // Display name (falls back to Name)
-  titleFallback: 'Name',            // Fallback if _refObjectName is empty
-  description: 'Description',       // Story description / acceptance criteria
-  notes:       'Notes',             // Additional requirements/notes
-  status:      'ScheduleState',     // Workflow state
-  statusDefault: 'Defined',         // Default if ScheduleState is missing
-  priority:    'Priority',          // Priority object (access .Name on it)
-  priorityDefault: 'None',          // Default if Priority is missing
-  issueType:   'User Story',        // Hardcoded — Rally HierarchicalRequirement
+  key:           'FormattedID',       // Unique story ID (e.g. US31488)
+  title:         '_refObjectName',    // Display name (falls back to Name)
+  titleFallback: 'Name',              // Fallback if _refObjectName is empty
+  description:   'Description',       // Story description
+  notes:         'Notes',             // Additional notes
+  requirements:  'c_Requirements',    // Custom requirements section
+  status:        'ScheduleState',     // Workflow state
+  statusDefault: 'Defined',           // Default if ScheduleState is missing
+  priority:      'Priority',          // Priority object (access .Name on it)
+  priorityDefault: 'None',            // Default if Priority is missing
+  issueType:     'User Story',        // Hardcoded — Rally HierarchicalRequirement
 } as const
 
 // ─────────────────────────────────────────────

@@ -16,6 +16,7 @@ interface RallyStory {
   title: string
   description: string
   notes?: string
+  requirements?: string
   issueType: string
   status: string
   priority: string
@@ -102,7 +103,8 @@ const TestPlanGenerator: React.FC = () => {
         context: `
 Title: ${selectedIssue?.title || 'N/A'}
 Description: ${selectedIssue?.description || 'N/A'}
-Notes/Requirements: ${selectedIssue?.notes || 'N/A'}
+Requirements: ${selectedIssue?.requirements || 'N/A'}
+Notes: ${selectedIssue?.notes || 'N/A'}
 Additional Context: ${additionalContext || 'N/A'}
 `.trim()
       })

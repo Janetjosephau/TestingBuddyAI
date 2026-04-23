@@ -24,6 +24,7 @@ interface RallyRequirement {
   title: string
   description: string
   notes?: string
+  requirements?: string
   issueType: string
   status: string
   priority: string
@@ -101,7 +102,8 @@ const TestCaseGenerator: React.FC = () => {
         requirementBody: `
 Title: ${selectedIssue.title}
 Description: ${selectedIssue.description || 'N/A'}
-Notes/Requirements: ${selectedIssue.notes || 'N/A'}
+Requirements: ${selectedIssue.requirements || 'N/A'}
+Notes: ${selectedIssue.notes || 'N/A'}
 `.trim()
       })
 
