@@ -74,26 +74,45 @@ export class RallyService {
     const uploadedCount = [];
     const errors = [];
 
+    // 1. Fetch the Story Reference to link the test cases
+    let storyRef = null;
+    let projectRef = null;
+
+    if (storyKey) {
+      try {
+        const storyUrl = `${baseUrl}${RALLY_API.userStory}?query=(${RALLY_FIELD_MAP.key} = "${storyKey}")&fetch=Project`;
+        const storyRes = await axios.get(storyUrl, { headers });
+        const story = storyRes.data?.QueryResult?.Results?.[0];
+        if (story) {
+          storyRef = story._ref;
+          projectRef = story.Project?._ref;
+        }
+      } catch (err) {
+        console.error('Failed to fetch story ref', err);
+      }
+    }
+
     for (const tc of testCases) {
       try {
-        // 1. Format the description from steps
+        // 2. Format the description from steps
         const description = `
           <b>Preconditions:</b><br/>${tc.preconditions?.join('<br/>') || 'None'}<br/><br/>
           <b>Steps:</b><br/>
           ${tc.steps?.map((s: any, i: number) => `${i+1}. ${s.action} -> Expected: ${s.expectedResult}`).join('<br/>') || 'No steps provided'}
         `;
 
-        // 2. Prepare payload
-        const payload = {
+        // 3. Prepare payload with Linking
+        const payload: any = {
           "TestCase": {
             "Name": tc.title || "AI Generated Test Case",
             "Description": description,
             "Priority": tc.priority || "Medium",
-            // In a real environment, we'd fetch the Project/Story Ref first
-            // For this implementation, we'll assume the Workspace/Project names matching is handled by Rally
-            // or we could use the keys if we had them.
           }
         };
+
+        // Link to project and story if available
+        if (storyRef) payload.TestCase.WorkProduct = storyRef;
+        if (projectRef) payload.TestCase.Project = projectRef;
 
         const createUrl = `${baseUrl}${RALLY_API.testCaseCreate}`;
         const response = await axios.post(createUrl, payload, { headers });
