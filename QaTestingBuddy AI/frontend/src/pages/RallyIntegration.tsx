@@ -15,6 +15,7 @@ interface RallyConfig {
 const RallyIntegration: React.FC = () => {
   const [configs, setConfigs] = useState<RallyConfig[]>([])
   const [errorModal, setErrorModal] = useState<{ title: string; detail: string } | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [testing, setTesting] = useState(false)
 

@@ -18,6 +18,7 @@ interface LLMConfig {
 const LLMConfiguration: React.FC = () => {
   const [configs, setConfigs] = useState<LLMConfig[]>([])
   const [errorModal, setErrorModal] = useState<{ title: string; detail: string } | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [testing, setTesting] = useState(false)
@@ -138,15 +139,20 @@ const LLMConfiguration: React.FC = () => {
     })
   }
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this configuration?')) {
-      try {
-        await llmApi.deleteConfig(id)
-        toast.success('Configuration Deleted')
-        await fetchConfigs()
-      } catch (error) {
-        toast.error('Failed to delete configuration')
-      }
+  const handleDelete = (id: string) => {
+    setDeleteConfirmId(id)
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmId) return
+    try {
+      await llmApi.deleteConfig(deleteConfirmId)
+      toast.success('Configuration Deleted')
+      await fetchConfigs()
+    } catch (error: any) {
+      setErrorModal({ title: 'Operation Failed', detail: error?.response?.data?.message || 'Failed to delete configuration' })
+    } finally {
+      setDeleteConfirmId(null)
     }
   }
 
