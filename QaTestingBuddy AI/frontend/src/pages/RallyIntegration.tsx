@@ -200,11 +200,18 @@ const RallyIntegration: React.FC = () => {
           <div className="mt-12">
             <h2 className="text-2xl font-bold text-[#0f172a] mb-6 px-4">Saved Configurations</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {configs.map(config => (
+              {configs.map((config, index) => (
                 <div key={config.id} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className="font-bold text-[#0f172a]">{config.projectName || config.workspaceName || 'Rally Config'}</h3>
+                      <div className="flex items-center space-x-3 mb-1">
+                        <h3 className="font-bold text-[#0f172a]">{config.projectName || config.workspaceName || 'Rally Config'}</h3>
+                        {index === 0 && (
+                          <span className="text-[9px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-sm">
+                            Currently Used
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-slate-500">{config.instanceUrl}</p>
                     </div>
                     <button onClick={() => handleDelete(config.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">

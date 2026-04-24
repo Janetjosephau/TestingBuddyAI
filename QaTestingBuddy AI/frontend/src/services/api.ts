@@ -34,7 +34,7 @@ export const rallyApi = {
   getConfigs: () => api.get('/rally/configs'),
   deleteConfig: (id: string) => api.delete(`/rally/configs/${id}`),
   upload: (data: any) => api.post('/rally/upload', data),
-  fetchRequirements: (query: string) => api.post('/rally/fetch-requirements', { query }),
+  fetchRequirements: (data: { query: string, rallyConfigId?: string }) => api.post('/rally/fetch-requirements', data),
 };
 
 export const testPlanApi = {

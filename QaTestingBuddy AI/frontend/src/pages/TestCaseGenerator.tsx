@@ -38,6 +38,8 @@ const TestCaseGenerator: React.FC = () => {
   const [uploading, setUploading] = useState(false)
 
   // Tab 1: Fetch State
+  const [rallyConfigs, setRallyConfigs] = useState<any[]>([])
+  const [selectedRallyId, setSelectedRallyId] = useState('')
   const [projectKey, setProjectKey] = useState('')
   const [fetchedIssues, setFetchedIssues] = useState<RallyRequirement[]>([])
   const [selectedIssue, setSelectedIssue] = useState<RallyRequirement | null>(null)
@@ -53,16 +55,22 @@ const TestCaseGenerator: React.FC = () => {
   const [errorModal, setErrorModal] = useState<{ title: string; detail: string } | null>(null)
 
   useEffect(() => {
-    loadLlmConfigs()
+    loadPrerequisites()
   }, [])
 
-  const loadLlmConfigs = async () => {
+  const loadPrerequisites = async () => {
     try {
-      const res = await llmApi.getConfigs()
-      setLlmConfigs(res.data)
-      if (res.data.length > 0) setSelectedLlmId(res.data[0].id)
+      const [llmRes, rallyRes] = await Promise.all([
+        llmApi.getConfigs(),
+        rallyApi.getConfigs()
+      ])
+      setLlmConfigs(llmRes.data)
+      if (llmRes.data.length > 0) setSelectedLlmId(llmRes.data[0].id)
+      
+      setRallyConfigs(rallyRes.data)
+      if (rallyRes.data.length > 0) setSelectedRallyId(rallyRes.data[0].id)
     } catch (e) {
-      console.error('Failed to load LLM configs')
+      console.error('Failed to load configs')
     }
   }
 
@@ -73,7 +81,10 @@ const TestCaseGenerator: React.FC = () => {
     }
     setFetching(true)
     try {
-      const res = await rallyApi.fetchRequirements(projectKey)
+      const res = await rallyApi.fetchRequirements({ 
+        query: projectKey, 
+        rallyConfigId: selectedRallyId 
+      })
       if (res.data.success) {
         setFetchedIssues(res.data.requirements)
         setSelectedIssue(res.data.requirements[0] || null)
@@ -233,7 +244,8 @@ Notes: ${selectedIssue.notes || 'N/A'}
     try {
       const res = await rallyApi.upload({
         testCases: toUpload,
-        storyKey: selectedIssue?.key
+        storyKey: selectedIssue?.key,
+        rallyConfigId: selectedRallyId
       })
       
       setSyncResult(res.data)
@@ -279,6 +291,18 @@ Notes: ${selectedIssue.notes || 'N/A'}
             {activeTab === 'fetch' && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="max-w-xl mx-auto space-y-6">
+                  {rallyConfigs.length > 1 && (
+                    <div className="space-y-2">
+                       <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Target Rally Workspace</label>
+                       <select 
+                         value={selectedRallyId}
+                         onChange={(e) => setSelectedRallyId(e.target.value)}
+                         className="w-full h-14 px-5 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold outline-none focus:border-emerald-500"
+                       >
+                         {rallyConfigs.map(c => <option key={c.id} value={c.id}>{c.workspaceName || 'Default Workspace'} ({c.instanceUrl})</option>)}
+                       </select>
+                    </div>
+                  )}
                   <div className="space-y-3">
                     <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Rally Formatted ID (e.g. US31488)</label>
                     <input 

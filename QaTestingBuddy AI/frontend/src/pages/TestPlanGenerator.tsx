@@ -26,6 +26,8 @@ const TestPlanGenerator: React.FC = () => {
   const [testPlans, setTestPlans] = useState<TestPlan[]>([])
   const [llmConfigs, setLlmConfigs] = useState<any[]>([])
   const [selectedLlmConfigId, setSelectedLlmConfigId] = useState('')
+  const [rallyConfigs, setRallyConfigs] = useState<any[]>([])
+  const [selectedRallyConfigId, setSelectedRallyConfigId] = useState('')
 
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
@@ -46,9 +48,15 @@ const TestPlanGenerator: React.FC = () => {
 
   const loadPrerequisites = async () => {
     try {
-      const llmRes = await llmApi.getConfigs()
+      const [llmRes, rallyRes] = await Promise.all([
+        llmApi.getConfigs(),
+        rallyApi.getConfigs()
+      ])
       setLlmConfigs(llmRes.data)
       if (llmRes.data.length > 0) setSelectedLlmConfigId(llmRes.data[0].id)
+      
+      setRallyConfigs(rallyRes.data)
+      if (rallyRes.data.length > 0) setSelectedRallyConfigId(rallyRes.data[0].id)
     } catch (e) {
       console.error(e)
     }
@@ -72,7 +80,10 @@ const TestPlanGenerator: React.FC = () => {
     setFetchedIssues([])
     setSelectedIssue(null)
     try {
-      const res = await rallyApi.fetchRequirements(projectKey)
+      const res = await rallyApi.fetchRequirements({
+        query: projectKey,
+        rallyConfigId: selectedRallyConfigId
+      })
       if (res.data?.success && res.data.requirements?.length > 0) {
         setFetchedIssues(res.data.requirements)
         setSelectedIssue(res.data.requirements[0])
@@ -95,8 +106,6 @@ const TestPlanGenerator: React.FC = () => {
 
     setGenerating(true)
     try {
-      // In a more complex app, this might need a specific TestPlan endpoint
-      // For now, using the generatorApi.generateTestPlan
       const res = await generatorApi.generateTestPlan({
         jiraIssueId: selectedIssue?.key || 'MANUAL',
         jiraRequirement: selectedIssue ? JSON.stringify(selectedIssue) : undefined,
@@ -194,12 +203,27 @@ Additional Context: ${additionalContext || 'N/A'}
 
           <div className="space-y-8">
             {/* Rally Instance Display */}
-            <div className="space-y-3">
-              <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Rally Connection</label>
-              <div className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl flex items-center">
-                <span className="text-slate-700 font-bold">Connected to Enterprise Rally Workspace</span>
+            {rallyConfigs.length > 1 ? (
+              <div className="space-y-3">
+                <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Target Rally Workspace</label>
+                <select 
+                  value={selectedRallyConfigId}
+                  onChange={(e) => setSelectedRallyConfigId(e.target.value)}
+                  className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold focus:border-emerald-500 appearance-none outline-none"
+                >
+                  {rallyConfigs.map(c => <option key={c.id} value={c.id}>{c.workspaceName || 'Default Workspace'} ({c.instanceUrl})</option>)}
+                </select>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-3">
+                <label className="text-[11px] font-black text-slate-400 tracking-widest uppercase">Rally Connection</label>
+                <div className="w-full h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl flex items-center">
+                  <span className="text-slate-700 font-bold whitespace-nowrap overflow-hidden text-ellipsis">
+                    {rallyConfigs[0]?.workspaceName || 'Connected to Rally Enterprise'} ({rallyConfigs[0]?.instanceUrl || '...' })
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Project/Workspace Context */}
             <div className="space-y-3">
@@ -429,13 +453,13 @@ Additional Context: ${additionalContext || 'N/A'}
               <div className="flex space-x-4">
                 <button
                   onClick={() => setErrorModal(null)}
-                  className="flex-1 h-12 bg-slate-900 text-white rounded-xl font-black hover:bg-slate-800 transition-all. "
+                  className="flex-1 h-12 bg-slate-900 text-white rounded-xl font-black hover:bg-slate-800 transition-all"
                 >
                   Close &amp; Retry
                 </button>
                 <button
                   onClick={() => { setErrorModal(null); window.location.href = '/connections/rally' }}
-                  className="h-12 px-6 bg-white border-2 border-slate-200 text-slate-700 rounded-xl font-black hover:bg-slate-50 transition-all text-sm. "
+                  className="h-12 px-6 bg-white border-2 border-slate-200 text-slate-700 rounded-xl font-black hover:bg-slate-50 transition-all text-sm "
                 >
                   Check Rally Config
                 </button>

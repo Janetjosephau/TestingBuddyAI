@@ -59,9 +59,9 @@ export class RallyService {
   async uploadTestCases(dto: UploadToRallyDto) {
     const { rallyConfigId, testCases, storyKey } = dto;
     
-    const config = await this.prisma.rallyConfig.findUnique({
-      where: { id: rallyConfigId }
-    });
+    const config = rallyConfigId 
+      ? await this.prisma.rallyConfig.findUnique({ where: { id: rallyConfigId } })
+      : await this.prisma.rallyConfig.findFirst();
     
     if (!config) throw new NotFoundException('Rally configuration not found');
 
@@ -119,8 +119,12 @@ export class RallyService {
     };
   }
 
-  async fetchRequirements(query: string) {
-    const config = await this.prisma.rallyConfig.findFirst();
+  async fetchRequirements(data: { query: string, rallyConfigId?: string }) {
+    const { query, rallyConfigId } = data;
+    const config = rallyConfigId 
+      ? await this.prisma.rallyConfig.findUnique({ where: { id: rallyConfigId } })
+      : await this.prisma.rallyConfig.findFirst();
+      
     if (!config) throw new NotFoundException('Rally configuration not found');
 
     const baseUrl = config.instanceUrl.replace(/\/$/, '');

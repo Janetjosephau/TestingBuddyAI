@@ -301,7 +301,7 @@ const LLMConfiguration: React.FC = () => {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {configs.map((config) => (
+            {configs.map((config, index) => (
               <div key={config.id} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-4">
@@ -309,7 +309,14 @@ const LLMConfiguration: React.FC = () => {
                       {config.provider.substring(0, 3)}
                     </div>
                     <div>
-                      <h3 className="font-black text-slate-900">{config.name}</h3>
+                      <div className="flex items-center space-x-2">
+                        <h3 className="font-black text-slate-900">{config.name}</h3>
+                        {index === 0 && (
+                          <span className="text-[9px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-sm animate-pulse">
+                            Currently Used
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs font-bold text-slate-400">{config.model} • {config.provider}</p>
                     </div>
                   </div>
