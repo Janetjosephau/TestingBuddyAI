@@ -28,18 +28,35 @@ export class DashboardService {
   }
 
   async getActivity() {
-    // Return the 5 most recent test plans as recent activity
-    const plans = await this.prisma.testPlan.findMany({
-      take: 5,
-      orderBy: { generatedAt: 'desc' },
-    });
+    const [plans, cases] = await Promise.all([
+      this.prisma.testPlan.findMany({
+        take: 5,
+        orderBy: { generatedAt: 'desc' },
+      }),
+      this.prisma.testCase.findMany({
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+      })
+    ]);
 
-    return plans.map(p => ({
-      type: 'test_plan_generated',
-      title: `Generated test plan: ${p.name}`,
-      timestamp: p.generatedAt,
-      status: 'success',
-      id: p.id
-    }));
+    const activity = [
+      ...plans.map(p => ({
+        type: 'test_plan_generated',
+        title: `Plan generated: ${p.name}`,
+        timestamp: p.generatedAt,
+        status: 'success',
+        id: `plan-${p.id}`
+      })),
+      ...cases.map(c => ({
+        type: 'test_case_generated',
+        title: `Case generated: ${c.title}`,
+        timestamp: c.createdAt,
+        status: 'success',
+        id: `case-${c.id}`
+      }))
+    ];
+
+    // Sort by most recent first and take top 8
+    return activity.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 8);
   }
 }
