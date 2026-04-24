@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Save, Trash2, CheckCircle, AlertCircle, ChevronDown, Target } from 'lucide-react'
+import { Save, Trash2, CheckCircle, AlertCircle, ChevronDown, Target , XCircle} from 'lucide-react'
 import toast from 'react-hot-toast'
 import { rallyApi } from '../services/api'
 
@@ -14,6 +14,7 @@ interface RallyConfig {
 
 const RallyIntegration: React.FC = () => {
   const [configs, setConfigs] = useState<RallyConfig[]>([])
+  const [errorModal, setErrorModal] = useState<{ title: string; detail: string } | null>(null)
   const [loading, setLoading] = useState(false)
   const [testing, setTesting] = useState(false)
 
@@ -51,7 +52,7 @@ const RallyIntegration: React.FC = () => {
         toast.error(response.data.message || 'Rally connection failed')
       }
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Rally connection failed. Please check your credentials.')
+      setErrorModal({ title: 'Operation Failed', detail: error?.response?.data?.message || 'Rally connection failed. Please check your credentials.' })
     } finally {
       setTesting(false)
     }
@@ -69,7 +70,7 @@ const RallyIntegration: React.FC = () => {
       await fetchConfigs()
       setFormData({ instanceUrl: 'https://rally1.rallydev.com', apiKey: '', workspaceName: '', projectName: '' })
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Failed to save Rally configuration')
+      setErrorModal({ title: 'Operation Failed', detail: error?.response?.data?.message || 'Failed to save Rally configuration' })
     } finally {
       setLoading(false)
     }

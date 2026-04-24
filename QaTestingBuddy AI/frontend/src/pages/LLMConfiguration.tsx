@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Save, Edit2, Trash2, CheckCircle, AlertCircle, Settings, ChevronDown, RefreshCw } from 'lucide-react'
+import { Save, Edit2, Trash2, CheckCircle, AlertCircle, Settings, ChevronDown, RefreshCw , XCircle} from 'lucide-react'
 import toast from 'react-hot-toast'
 import { llmApi } from '../services/api'
 
@@ -17,6 +17,7 @@ interface LLMConfig {
 
 const LLMConfiguration: React.FC = () => {
   const [configs, setConfigs] = useState<LLMConfig[]>([])
+  const [errorModal, setErrorModal] = useState<{ title: string; detail: string } | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [testing, setTesting] = useState(false)
@@ -93,7 +94,7 @@ const LLMConfiguration: React.FC = () => {
         toast.error(response.data.message || 'Connection failed')
       }
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Connection failed. Please check your credentials.')
+      setErrorModal({ title: 'Operation Failed', detail: error?.response?.data?.message || 'Connection failed. Please check your credentials.' })
     } finally {
       setTesting(false)
     }
@@ -118,7 +119,7 @@ const LLMConfiguration: React.FC = () => {
       await fetchConfigs()
       resetForm()
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Failed to save configuration')
+      setErrorModal({ title: 'Operation Failed', detail: error?.response?.data?.message || 'Failed to save configuration' })
     } finally {
       setLoading(false)
     }

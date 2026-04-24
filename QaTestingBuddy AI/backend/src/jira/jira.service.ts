@@ -108,6 +108,9 @@ export class JiraService {
       });
       return { message: 'JIRA configuration deleted successfully' };
     } catch (error: any) {
+      if (error.code === 'P2003') {
+        throw new BadRequestException('Cannot delete this configuration because it is currently used by your saved Test Plans/Cases.');
+      }
       throw new NotFoundException('Jira configuration not found or could not be deleted');
     }
   }

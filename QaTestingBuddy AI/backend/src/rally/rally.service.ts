@@ -166,7 +166,10 @@ export class RallyService {
     try {
       await this.prisma.rallyConfig.delete({ where: { id } });
       return { message: 'Rally configuration deleted successfully' };
-    } catch {
+    } catch (error: any) {
+      if (error.code === 'P2003') {
+        throw new BadRequestException('Cannot delete this configuration because it is currently used by your saved Test Plans/Cases.');
+      }
       throw new NotFoundException('Rally configuration not found');
     }
   }
