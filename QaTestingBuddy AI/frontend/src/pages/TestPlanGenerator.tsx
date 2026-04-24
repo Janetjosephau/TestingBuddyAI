@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { FileText, RefreshCw, Zap, Trash2, Download } from 'lucide-react'
+import { FileText, RefreshCw, Zap, Trash2, Download, Database, ChevronRight } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { generatorApi, rallyApi, llmApi } from '../services/api'
 
@@ -214,37 +214,59 @@ Additional Context: ${additionalContext || 'N/A'}
 
         {/* Fetched Issues Preview */}
         {fetchedIssues.length > 0 && (
-          <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl p-8">
-            <h2 className="text-xl font-black text-[#0f172a] mb-6">📋 Fetched Rally Stories ({fetchedIssues.length})</h2>
-            <div className="space-y-4">
-              {fetchedIssues.map(issue => (
-                <div
-                  key={issue.key}
-                  onClick={() => setSelectedIssue(issue)}
-                  className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${
-                    selectedIssue?.key === issue.key
-                      ? 'border-emerald-500 bg-emerald-50'
-                      : 'border-slate-100 hover:border-emerald-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-black text-emerald-600 uppercase">{issue.key}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-600 font-bold">{issue.issueType}</span>
-                      <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 font-bold">{issue.status}</span>
-                      <span className="text-xs px-2 py-1 rounded-full bg-orange-100 text-orange-700 font-bold">{issue.priority}</span>
+          <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl p-8 space-y-8">
+            <div>
+              <h2 className="text-xl font-black text-[#0f172a] mb-6">📋 Fetched Rally Stories ({fetchedIssues.length})</h2>
+              <div className="space-y-4">
+                {fetchedIssues.map(issue => (
+                  <div
+                    key={issue.key}
+                    onClick={() => setSelectedIssue(issue)}
+                    className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${
+                      selectedIssue?.key === issue.key
+                        ? 'border-emerald-500 bg-emerald-50'
+                        : 'border-slate-100 hover:border-emerald-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-black text-emerald-600 uppercase">{issue.key}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-600 font-bold">{issue.issueType}</span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 font-bold">{issue.status}</span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-orange-100 text-orange-700 font-bold">{issue.priority}</span>
+                      </div>
+                    </div>
+                    <p className="font-bold text-[#0f172a]">{issue.title}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {selectedIssue && (
+              <div className="bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="bg-slate-900 p-6 text-white flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Database size={20} className="text-emerald-400" />
+                    <h3 className="font-black tracking-tight uppercase text-sm">Story Content: {selectedIssue.key}</h3>
+                  </div>
+                </div>
+                <div className="p-8 space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Description</label>
+                    <div className="p-5 bg-white rounded-2xl border border-slate-100 text-sm text-slate-600 leading-relaxed font-medium max-h-60 overflow-y-auto shadow-sm" dangerouslySetInnerHTML={{ __html: selectedIssue.description || '<span class="italic opacity-50">No description</span>' }} />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Technical Requirements</label>
+                      <div className="p-5 bg-white rounded-2xl border border-slate-100 text-sm text-slate-600 leading-relaxed font-medium max-h-48 overflow-y-auto shadow-sm" dangerouslySetInnerHTML={{ __html: selectedIssue.requirements || '<span class="italic opacity-50">None</span>' }} />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Notes</label>
+                      <div className="p-5 bg-white rounded-2xl border border-slate-100 text-sm text-slate-600 leading-relaxed font-medium max-h-48 overflow-y-auto shadow-sm" dangerouslySetInnerHTML={{ __html: selectedIssue.notes || '<span class="italic opacity-50">None</span>' }} />
                     </div>
                   </div>
-                  <p className="font-bold text-[#0f172a]">{issue.title}</p>
-                  {issue.description && (
-                    <p className="text-sm text-slate-500 mt-1 line-clamp-2">{issue.description}</p>
-                  )}
                 </div>
-              ))}
-            </div>
-            {selectedIssue && (
-              <div className="mt-4 p-4 bg-emerald-50 rounded-xl border border-emerald-200">
-                <p className="text-sm font-black text-emerald-700">✅ Selected for generation: <span className="font-bold">{selectedIssue.key} — {selectedIssue.title}</span></p>
               </div>
             )}
           </div>

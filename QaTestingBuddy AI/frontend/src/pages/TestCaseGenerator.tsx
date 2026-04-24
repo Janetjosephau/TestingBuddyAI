@@ -232,26 +232,67 @@ Notes: ${selectedIssue.notes || 'N/A'}
                 </div>
 
                 {fetchedIssues.length > 0 && (
-                  <div className="pt-8">
-                    <h3 className="text-sm font-black text-slate-700 mb-4 flex items-center space-x-2">
-                      <FileCheck size={18} className="text-emerald-500" />
-                      <span>SELECTED REQUIREMENT</span>
-                    </h3>
-                    <div className="grid grid-cols-1 gap-3">
-                      {fetchedIssues.map((issue) => (
-                        <div 
-                          key={issue.key}
-                          onClick={() => setSelectedIssue(issue)}
-                          className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between ${selectedIssue?.key === issue.key ? 'border-emerald-500 bg-emerald-50' : 'border-slate-50 hover:border-slate-200'}`}
-                        >
-                          <div className="flex items-center space-x-4">
-                            <span className="text-xs font-black text-emerald-600 bg-white px-2 py-1 rounded-md border border-emerald-100">{issue.key}</span>
-                            <span className="font-bold text-slate-700">{issue.title}</span>
+                  <div className="pt-8 space-y-6">
+                    <div>
+                      <h3 className="text-sm font-black text-slate-700 mb-4 flex items-center space-x-2">
+                        <FileCheck size={18} className="text-emerald-500" />
+                        <span>SELECT REQUIREMENT</span>
+                      </h3>
+                      <div className="grid grid-cols-1 gap-3">
+                        {fetchedIssues.map((issue) => (
+                          <div 
+                            key={issue.key}
+                            onClick={() => setSelectedIssue(issue)}
+                            className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between ${selectedIssue?.key === issue.key ? 'border-emerald-500 bg-emerald-50' : 'border-slate-50 hover:border-slate-200'}`}
+                          >
+                            <div className="flex items-center space-x-4">
+                              <span className="text-xs font-black text-emerald-600 bg-white px-2 py-1 rounded-md border border-emerald-100">{issue.key}</span>
+                              <span className="font-bold text-slate-700">{issue.title}</span>
+                            </div>
+                            {selectedIssue?.key === issue.key && <CheckCircle2 className="text-emerald-500" size={20} />}
                           </div>
-                          {selectedIssue?.key === issue.key && <CheckCircle2 className="text-emerald-500" size={20} />}
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
+
+                    {selectedIssue && (
+                      <div className="bg-white border-2 border-slate-100 rounded-[2rem] overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+                        <div className="bg-slate-900 p-6 text-white flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <Database size={20} className="text-emerald-400" />
+                            <h3 className="font-black tracking-tight">REQUIREMENT DETAILS</h3>
+                          </div>
+                          <span className="text-[10px] font-black bg-emerald-500 px-2 py-1 rounded text-white">{selectedIssue.key}</span>
+                        </div>
+                        <div className="p-8 space-y-8">
+                          <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Description</label>
+                            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 text-sm text-slate-600 leading-relaxed font-medium max-h-48 overflow-y-auto" dangerouslySetInnerHTML={{ __html: selectedIssue.description || '<span class="italic opacity-50">No description provided</span>' }} />
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-3">
+                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Technical Requirements</label>
+                              <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 text-sm text-slate-600 leading-relaxed font-medium max-h-48 overflow-y-auto" dangerouslySetInnerHTML={{ __html: selectedIssue.requirements || '<span class="italic opacity-50">None</span>' }} />
+                            </div>
+                            <div className="space-y-3">
+                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Notes</label>
+                              <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 text-sm text-slate-600 leading-relaxed font-medium max-h-48 overflow-y-auto" dangerouslySetInnerHTML={{ __html: selectedIssue.notes || '<span class="italic opacity-50">None</span>' }} />
+                            </div>
+                          </div>
+
+                          <div className="pt-4 flex justify-end">
+                            <button 
+                              onClick={() => setActiveTab('generate')}
+                              className="px-8 py-3 bg-emerald-500 text-white rounded-xl font-black hover:bg-emerald-600 transition-all flex items-center space-x-2"
+                            >
+                              <span>Proceed to Generation</span>
+                              <ChevronRight size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

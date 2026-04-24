@@ -13,7 +13,9 @@ export class OllamaAdapter implements LLMAdapter {
       const response = await axios.get(`${url}/api/tags`, {
         timeout: 10000,
         headers: {
-          'ngrok-skip-browser-warning': 'true'
+          'ngrok-skip-browser-warning': 'true',
+          'User-Agent': 'TestingBuddy-AI',
+          'Accept': 'application/json'
         }
       });
 
@@ -50,7 +52,9 @@ export class OllamaAdapter implements LLMAdapter {
       const response = await axios.post(url, payload, {
         timeout: 300000, // 5 minutes for slow local models
         headers: {
-          'ngrok-skip-browser-warning': 'true'
+          'ngrok-skip-browser-warning': 'true',
+          'User-Agent': 'TestingBuddy-AI',
+          'Accept': 'application/json'
         }
       });
 
