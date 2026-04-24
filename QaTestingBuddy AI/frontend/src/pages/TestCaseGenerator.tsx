@@ -50,7 +50,7 @@ const TestCaseGenerator: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [syncResult, setSyncResult] = useState<{ success: boolean; message: string; errors?: string[] } | null>(null)
-  const [generationError, setGenerationError] = useState<{ title: string; detail: string } | null>(null)
+  const [errorModal, setErrorModal] = useState<{ title: string; detail: string } | null>(null)
 
   useEffect(() => {
     loadLlmConfigs()
@@ -79,10 +79,10 @@ const TestCaseGenerator: React.FC = () => {
         setSelectedIssue(res.data.requirements[0] || null)
         toast.success(`Fetched requirement from Rally`)
       } else {
-        toast.error(res.data.message || 'Requirement not found')
+        setErrorModal({ title: 'Fetch Failed', detail: res.data.message || 'Requirement not found' })
       }
-    } catch (e) {
-      toast.error('Failed to connect to Rally')
+    } catch (e: any) {
+      setErrorModal({ title: 'Connection Error', detail: e?.response?.data?.message || e?.message || 'Failed to connect to Rally' })
     } finally {
       setFetching(false)
     }
@@ -94,7 +94,7 @@ const TestCaseGenerator: React.FC = () => {
       return
     }
     setGenerating(true)
-    setGenerationError(null)
+    setErrorModal(null)
     try {
       const res = await generatorApi.generateTestCases({
         testPlanId: 'manual-gen',
@@ -115,7 +115,7 @@ Notes: ${selectedIssue.notes || 'N/A'}
         setActiveTab('review')
         toast.success('Test cases generated!')
       } else {
-        setGenerationError({
+        setErrorModal({
           title: 'Generation Failed',
           detail: res.data.message || 'The AI could not generate test cases. Please check your LLM connection and try again.'
         })
@@ -125,7 +125,7 @@ Notes: ${selectedIssue.notes || 'N/A'}
         e?.response?.data?.message ||
         e?.message ||
         'An unexpected error occurred. Please verify your LLM configuration and try again.'
-      setGenerationError({
+      setErrorModal({
         title: 'Generation Error',
         detail
       })
@@ -542,12 +542,12 @@ Notes: ${selectedIssue.notes || 'N/A'}
       </div>
     </div>
 
-    {/* Generation Error Modal — waits for user to dismiss */}
-    {generationError && (
+    {/* Error Modal — waits for user to dismiss */}
+    {errorModal && (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
           className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-          onClick={() => setGenerationError(null)}
+          onClick={() => setErrorModal(null)}
         />
         <div className="relative w-full max-w-lg bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-300">
           <div className="h-2 w-full bg-gradient-to-r from-red-500 to-rose-500" />
@@ -557,12 +557,12 @@ Notes: ${selectedIssue.notes || 'N/A'}
                 <XCircle size={32} className="text-red-500" />
               </div>
               <div className="pt-1">
-                <h2 className="text-xl font-black text-slate-900">{generationError?.title}</h2>
+                <h2 className="text-xl font-black text-slate-900">{errorModal?.title}</h2>
                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-1">Test Case Generator · Rally</p>
               </div>
             </div>
             <div className="bg-red-50 border border-red-100 rounded-2xl p-5 mb-8">
-              <p className="text-sm font-bold text-red-700 leading-relaxed">{generationError?.detail}</p>
+              <p className="text-sm font-bold text-red-700 leading-relaxed">{errorModal?.detail}</p>
             </div>
             <div className="space-y-3 mb-8">
               <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">What to check</p>
@@ -582,13 +582,13 @@ Notes: ${selectedIssue.notes || 'N/A'}
             </div>
             <div className="flex space-x-4">
               <button
-                onClick={() => setGenerationError(null)}
+                onClick={() => setErrorModal(null)}
                 className="flex-1 h-12 bg-slate-900 text-white rounded-xl font-black hover:bg-slate-800 transition-all"
               >
                 Close &amp; Retry
               </button>
               <button
-                onClick={() => { setGenerationError(null); window.location.href = '/connections/llm' }}
+                onClick={() => { setErrorModal(null); window.location.href = '/connections/llm' }}
                 className="h-12 px-6 bg-white border-2 border-slate-200 text-slate-700 rounded-xl font-black hover:bg-slate-50 transition-all text-sm"
               >
                 Check LLM Config

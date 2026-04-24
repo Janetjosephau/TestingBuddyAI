@@ -150,7 +150,8 @@ export class RallyService {
       
       return { success: true, requirements: formatted };
     } catch (error: any) {
-      return { success: false, message: `Rally Fetch Failed: ${error.message}` };
+      const errMsg = error.response?.data?.errors?.[0] || error.response?.statusText || error.message;
+      return { success: false, message: `Rally Fetch Failed: ${errMsg}` };
     }
   }
 

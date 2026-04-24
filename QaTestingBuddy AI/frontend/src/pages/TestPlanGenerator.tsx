@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { FileText, RefreshCw, Zap, Trash2, Download, Database, ChevronRight } from 'lucide-react'
+import { FileText, RefreshCw, Zap, Trash2, Download, Database, ChevronRight, XCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { generatorApi, rallyApi, llmApi } from '../services/api'
 
@@ -37,6 +37,7 @@ const TestPlanGenerator: React.FC = () => {
   const [selectedIssue, setSelectedIssue] = useState<RallyStory | null>(null)
   const [showGeneratedModal, setShowGeneratedModal] = useState(false)
   const [generatedContent, setGeneratedContent] = useState<any>(null)
+  const [errorModal, setErrorModal] = useState<{ title: string; detail: string } | null>(null)
 
   useEffect(() => {
     loadPrerequisites()
@@ -77,10 +78,10 @@ const TestPlanGenerator: React.FC = () => {
         setSelectedIssue(res.data.requirements[0])
         toast.success(`Fetched story from Rally`)
       } else {
-        toast.error('Story not found in Rally.')
+        setErrorModal({ title: 'Fetch Failed', detail: res.data.message || 'Story not found in Rally.' })
       }
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Failed to fetch Rally details')
+      setErrorModal({ title: 'Connection Error', detail: error?.response?.data?.message || error?.message || 'Failed to fetch Rally details' })
     } finally {
       setFetching(false)
     }
@@ -383,6 +384,62 @@ Additional Context: ${additionalContext || 'N/A'}
                 <Download size={18} /> Export JSON
               </button>
               <button onClick={() => setShowGeneratedModal(false)} className="px-8 h-12 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Modal — waits for user to dismiss */}
+      {errorModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            onClick={() => setErrorModal(null)}
+          />
+          <div className="relative w-full max-w-lg bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-300">
+            <div className="h-2 w-full bg-gradient-to-r from-red-500 to-rose-500" />
+            <div className="p-10">
+              <div className="flex items-start space-x-4 mb-6">
+                <div className="w-14 h-14 rounded-2xl bg-red-50 border-2 border-red-100 flex items-center justify-center flex-shrink-0">
+                  <XCircle size={32} className="text-red-500" />
+                </div>
+                <div className="pt-1">
+                  <h2 className="text-xl font-black text-slate-900">{errorModal?.title}</h2>
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-1">Test Plan Generator · Rally</p>
+                </div>
+              </div>
+              <div className="bg-red-50 border border-red-100 rounded-2xl p-5 mb-8">
+                <p className="text-sm font-bold text-red-700 leading-relaxed">{errorModal?.detail}</p>
+              </div>
+              <div className="space-y-3 mb-8">
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">What to check</p>
+                <ul className="space-y-2">
+                  {[
+                    'Ensure your Rally API Key is valid and hasn\'t expired',
+                    'Verify the URL matches your Enterprise Rally environment',
+                    'Check if the provided Formatted ID actually exists in the selected project',
+                  ].map((tip, i) => (
+                    <li key={i} className="flex items-start space-x-2 text-sm text-slate-600 font-medium">
+                      <div className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 flex-shrink-0" />
+                      <span>{tip}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => setErrorModal(null)}
+                  className="flex-1 h-12 bg-slate-900 text-white rounded-xl font-black hover:bg-slate-800 transition-all. "
+                >
+                  Close &amp; Retry
+                </button>
+                <button
+                  onClick={() => { setErrorModal(null); window.location.href = '/connections/rally' }}
+                  className="h-12 px-6 bg-white border-2 border-slate-200 text-slate-700 rounded-xl font-black hover:bg-slate-50 transition-all text-sm. "
+                >
+                  Check Rally Config
+                </button>
+              </div>
             </div>
           </div>
         </div>
