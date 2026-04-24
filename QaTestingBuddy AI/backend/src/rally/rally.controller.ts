@@ -19,8 +19,8 @@ export class RallyController {
   }
 
   @Post('fetch-requirements')
-  async fetchRequirements(@Body('query') query: string) {
-    return this.rallyService.fetchRequirements(query);
+  async fetchRequirements(@Body() data: { query: string, rallyConfigId?: string }) {
+    return this.rallyService.fetchRequirements(data);
   }
 
   @Post('configs')
