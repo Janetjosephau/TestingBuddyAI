@@ -324,41 +324,14 @@ Notes: ${selectedIssue.notes || 'N/A'}
                     </div>
 
                     {selectedIssue && (
-                      <div className="bg-white border-2 border-slate-100 rounded-[2rem] overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-                        <div className="bg-slate-900 p-6 text-white flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <Database size={20} className="text-emerald-400" />
-                            <h3 className="font-black tracking-tight">REQUIREMENT DETAILS</h3>
-                          </div>
-                          <span className="text-[10px] font-black bg-emerald-500 px-2 py-1 rounded text-white">{selectedIssue.key}</span>
-                        </div>
-                        <div className="p-8 space-y-8">
-                          <div className="space-y-3">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Description</label>
-                            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 text-sm text-slate-600 leading-relaxed font-medium max-h-48 overflow-y-auto" dangerouslySetInnerHTML={{ __html: selectedIssue.description || '<span class="italic opacity-50">No description provided</span>' }} />
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-3">
-                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Requirements</label>
-                              <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 text-sm text-slate-600 leading-relaxed font-medium max-h-48 overflow-y-auto" dangerouslySetInnerHTML={{ __html: selectedIssue.requirements || '<span class="italic opacity-50">No requirements found</span>' }} />
-                            </div>
-                            <div className="space-y-3">
-                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Notes</label>
-                              <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 text-sm text-slate-600 leading-relaxed font-medium max-h-48 overflow-y-auto" dangerouslySetInnerHTML={{ __html: selectedIssue.notes || '<span class="italic opacity-50">No notes found</span>' }} />
-                            </div>
-                          </div>
-
-                          <div className="pt-4 flex justify-end">
-                            <button 
-                              onClick={() => setActiveTab('generate')}
-                              className="px-8 py-3 bg-emerald-500 text-white rounded-xl font-black hover:bg-emerald-600 transition-all flex items-center space-x-2"
-                            >
-                              <span>Proceed to Generation</span>
-                              <ChevronRight size={18} />
-                            </button>
-                          </div>
-                        </div>
+                      <div className="pt-4 flex justify-end">
+                        <button 
+                          onClick={() => setActiveTab('generate')}
+                          className="px-8 py-3 bg-emerald-500 text-white rounded-xl font-black hover:bg-emerald-600 transition-all flex items-center space-x-2 shadow-lg shadow-emerald-100"
+                        >
+                          <span>Proceed to Generation</span>
+                          <ChevronRight size={18} />
+                        </button>
                       </div>
                     )}
                   </div>
