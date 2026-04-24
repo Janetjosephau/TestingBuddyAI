@@ -77,15 +77,20 @@ const RallyIntegration: React.FC = () => {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this Rally configuration?')) {
-      try {
-        await rallyApi.deleteConfig(id)
-        toast.success('Rally configuration deleted')
-        await fetchConfigs()
-      } catch {
-        toast.error('Failed to delete Rally configuration')
-      }
+  const handleDelete = (id: string) => {
+    setDeleteConfirmId(id)
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmId) return
+    try {
+      await rallyApi.deleteConfig(deleteConfirmId)
+      toast.success('Rally configuration deleted')
+      await fetchConfigs()
+    } catch (error: any) {
+      setErrorModal({ title: 'Operation Failed', detail: error?.response?.data?.message || 'Failed to delete Rally configuration' })
+    } finally {
+      setDeleteConfirmId(null)
     }
   }
 
@@ -213,6 +218,25 @@ const RallyIntegration: React.FC = () => {
           </div>
         )}
       </div>
+
+      {deleteConfirmId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setDeleteConfirmId(null)} />
+          <div className="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-300">
+            <div className="p-10 text-center">
+              <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Trash2 size={40} />
+              </div>
+              <h2 className="text-2xl font-black text-slate-900 mb-2">Delete Rally Configuration?</h2>
+              <p className="text-slate-500 font-medium mb-8">This action cannot be undone. Are you sure you want to permanently delete this?</p>
+              <div className="flex space-x-4">
+                <button onClick={() => setDeleteConfirmId(null)} className="flex-1 h-14 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-all">Cancel</button>
+                <button onClick={confirmDelete} className="flex-1 h-14 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all">Yes, Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
