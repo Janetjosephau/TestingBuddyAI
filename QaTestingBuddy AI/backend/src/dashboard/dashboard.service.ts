@@ -1,47 +1,45 @@
 import { Injectable } from '@nestjs/common';
-// import { PrismaService } from '../database/prisma.service';
+import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
 export class DashboardService {
-  // constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async getMetrics() {
-    // Mock data for demonstration
+    const [totalPlans, totalCases, llmConfigs, rallyConfigs] = await Promise.all([
+      this.prisma.testPlan.count(),
+      this.prisma.testCase.count(),
+      this.prisma.lLMConfig.count(),
+      this.prisma.rallyConfig.count(),
+    ]);
+
     return {
-      totalTestPlans: 5,
-      totalTestCases: 25,
-      generatedToday: 2,
-      syncedToJira: 3,
-      syncedToRally: 1,
+      totalTestPlans: totalPlans,
+      totalTestCases: totalCases,
+      activeLLMs: llmConfigs,
+      activeRally: rallyConfigs,
+      generatedToday: 0, // Placeholder
       coverage: {
-        manual: 65,
-        automated: 35,
-        coverage_percentage: 78,
+        manual: 100,
+        automated: 0,
+        coverage_percentage: 100,
       },
     };
   }
 
   async getActivity() {
-    // Mock activity data
-    return [
-      {
-        type: 'test_plan_generated',
-        title: 'Generated test plan: User Authentication',
-        timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-        status: 'success',
-      },
-      {
-        type: 'test_case_generated',
-        title: 'Created test case: Login validation',
-        timestamp: new Date(Date.now() - 1000 * 60 * 15), // 15 minutes ago
-        status: 'success',
-      },
-      {
-        type: 'test_plan_generated',
-        title: 'Generated test plan: Payment Processing',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
-        status: 'success',
-      },
-    ];
+    // Return the 5 most recent test plans as recent activity
+    const plans = await this.prisma.testPlan.findMany({
+      take: 5,
+      orderBy: { generatedAt: 'desc' },
+    });
+
+    return plans.map(p => ({
+      type: 'test_plan_generated',
+      title: `Generated test plan: ${p.name}`,
+      timestamp: p.generatedAt,
+      status: 'success',
+      id: p.id
+    }));
   }
 }

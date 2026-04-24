@@ -1,19 +1,34 @@
 import React, { useState, useEffect } from 'react'
-import { FileText, Zap, TrendingUp, RefreshCw, Clock, AlertCircle } from 'lucide-react'
-import { toast } from 'react-hot-toast'
-import MetricCard from '../components/MetricCard'
-import ActivityFeed from '../components/ActivityFeed'
+import { 
+  FileText, 
+  Zap, 
+  RefreshCw, 
+  Clock, 
+  CheckCircle2, 
+  ArrowRight, 
+  PlusCircle, 
+  BarChart3,
+  Search,
+  LayoutDashboard
+} from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { dashboardApi } from '../services/api'
+import SummaryMetric from '../components/SummaryMetric'
+import ConnectionStatus from '../components/ConnectionStatus'
 
-interface Metric {
-  label: string
-  value: number
-  icon: React.ReactNode
-  color: string
-  trend?: number
+interface DashboardMetrics {
+  totalTestPlans: number
+  totalTestCases: number
+  activeLLMs: number
+  activeRally: number
+  generatedToday: number
+  coverage: {
+    coverage_percentage: number
+  }
 }
 
 interface Activity {
+  id: string
   type: string
   title: string
   timestamp: string
@@ -21,67 +36,176 @@ interface Activity {
 }
 
 const Dashboard: React.FC = () => {
-  const [metrics] = useState({
-    plansGenerated: 9,
-    featuresMapped: 21
-  })
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null)
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchDashboardData()
+  }, [])
+
+  const fetchDashboardData = async () => {
+    try {
+      const [metricsRes, activityRes] = await Promise.all([
+        dashboardApi.getMetrics(),
+        dashboardApi.getActivity()
+      ])
+      setMetrics(metricsRes.data)
+      setActivities(activityRes.data)
+    } catch (error) {
+      console.error('Failed to fetch dashboard data', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Loading Intelligence...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] p-12">
-      {/* Header */}
-      <div className="mb-12">
-        <h1 className="text-4xl font-extrabold text-[#0f172a] tracking-tight">Dashboard Insights</h1>
-        <p className="text-slate-500 mt-2 text-lg">Overview of your TestingBuddy AI generation activities.</p>
-      </div>
-
-      {/* Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-10 flex items-center space-x-8">
-          <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
-            <FileText size={32} />
-          </div>
+    <div className="min-h-screen bg-[#f8fafc] p-8 lg:p-12">
+      <div className="max-w-7xl mx-auto space-y-12">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <p className="text-[13px] font-bold text-slate-400 tracking-[0.2em] uppercase mb-1">Plans Generated</p>
-            <p className="text-5xl font-black text-[#0f172a]">{metrics.plansGenerated}</p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-10 flex items-center space-x-8">
-          <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
-            <RefreshCw size={32} />
-          </div>
-          <div>
-            <p className="text-[13px] font-bold text-slate-400 tracking-[0.2em] uppercase mb-1">Total Features Mapped</p>
-            <p className="text-5xl font-black text-[#0f172a]">{metrics.featuresMapped}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div>
-        <h2 className="text-2xl font-bold text-[#0f172a] mb-8">Recent Activity</h2>
-        <div className="space-y-4">
-          {[1, 2, 3].map((item) => (
-            <div key={item} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex items-center justify-between group hover:border-emerald-200 transition-all">
-              <div className="flex-1">
-                <div className="flex items-center space-x-3 mb-2">
-                  <h3 className="text-lg font-bold text-[#0f172a]">1 requirement(s) analyzed</h3>
-                </div>
-                <p className="text-slate-500 text-sm line-clamp-1">
-                  AI successfully generated a test plan based on Rally story US31488.
-                </p>
+            <div className="flex items-center space-x-3 mb-2">
+              <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+                <LayoutDashboard size={18} />
               </div>
-              <div className="text-right">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  Apr 23, 2026, 12:50 PM
-                </p>
+              <h1 className="text-3xl font-black text-[#0f172a] tracking-tight">Intelligence Overview</h1>
+            </div>
+            <p className="text-slate-500 font-medium">Testing Buddy AI is active and monitoring your workspace.</p>
+          </div>
+          
+          <ConnectionStatus 
+            llmCount={metrics?.activeLLMs || 0} 
+            rallyCount={metrics?.activeRally || 0} 
+          />
+        </div>
+
+        {/* Primary Metrics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <SummaryMetric 
+            label="Total Test Plans" 
+            value={metrics?.totalTestPlans || 0} 
+            icon={FileText} 
+            colorClass="text-emerald-600"
+            trend={{ value: 12, label: "vs last month" }}
+          />
+          <SummaryMetric 
+            label="Total Test Cases" 
+            value={metrics?.totalTestCases || 0} 
+            icon={CheckCircle2} 
+            colorClass="text-blue-600"
+            trend={{ value: 5, label: "this week" }}
+          />
+          <SummaryMetric 
+            label="AI Sync Accuracy" 
+            value={`${metrics?.coverage.coverage_percentage || 100}%`} 
+            icon={Zap} 
+            colorClass="text-amber-500"
+          />
+          <SummaryMetric 
+            label="Active Connections" 
+            value={(metrics?.activeLLMs || 0) + (metrics?.activeRally || 0)} 
+            icon={RefreshCw} 
+            colorClass="text-rose-500"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          
+          {/* Recent Activity Feed */}
+          <div className="lg:col-span-2 space-y-8">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-black text-[#0f172a]">Recent AI Insights</h2>
+              <button onClick={fetchDashboardData} className="p-2 text-slate-400 hover:text-emerald-600 transition-colors">
+                <RefreshCw size={20} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {activities.length > 0 ? activities.map((activity, idx) => (
+                <div 
+                  key={activity.id || idx} 
+                  className="bg-white rounded-3xl border border-slate-100 p-6 flex items-center justify-between group hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-500/5 transition-all animate-in fade-in slide-in-from-bottom-2 duration-500"
+                >
+                  <div className="flex items-center space-x-5">
+                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
+                      <Clock size={22} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-[#0f172a] group-hover:text-emerald-700 transition-colors">{activity.title}</h3>
+                      <p className="text-sm text-slate-400 font-medium">
+                        {new Date(activity.timestamp).toLocaleString()} • <span className="text-emerald-500">Completed</span>
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRightIcon className="text-slate-300 group-hover:text-emerald-400 transition-all group-hover:translate-x-1" />
+                </div>
+              )) : (
+                <div className="p-12 text-center bg-white rounded-3xl border border-dashed border-slate-200">
+                   <p className="text-slate-400 font-medium italic">No recent activity detected. Start generating to see results!</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Quick Launches Sidebar */}
+          <div className="space-y-8">
+            <h2 className="text-2xl font-black text-[#0f172a]">Quick Launch</h2>
+            <div className="space-y-4">
+              <Link to="/generator/test-plan" className="block p-6 bg-slate-900 border border-slate-800 rounded-3xl hover:bg-slate-800 transition-all group">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500">
+                    <FileText size={20} />
+                  </div>
+                  <PlusCircle size={20} className="text-slate-600 group-hover:text-emerald-500 transition-colors" />
+                </div>
+                <h4 className="text-white font-bold text-lg mb-1">Create Test Plan</h4>
+                <p className="text-slate-500 text-sm font-medium">Generate comprehensive plans from Rally stories.</p>
+              </Link>
+
+              <Link to="/generator/test-case" className="block p-6 bg-white border border-slate-100 rounded-3xl hover:border-emerald-200 hover:shadow-lg transition-all group">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500">
+                    <BarChart3 size={20} />
+                  </div>
+                  <PlusCircle size={20} className="text-slate-200 group-hover:text-blue-500 transition-colors" />
+                </div>
+                <h4 className="text-[#0f172a] font-bold text-lg mb-1">Generate Test Cases</h4>
+                <p className="text-slate-400 text-sm font-medium">Batch create test cases with AI precision.</p>
+              </Link>
+              
+              <div className="p-8 bg-emerald-600 rounded-3xl text-white relative overflow-hidden">
+                 <Zap size={80} className="absolute -right-4 -bottom-4 text-emerald-500/30 rotate-12" />
+                 <h4 className="font-black text-xl mb-2 relative z-10">AI Power Tip</h4>
+                 <p className="text-emerald-100 text-sm font-medium relative z-10 leading-relaxed">
+                   Sync your generated test cases directly back to Rally US/Stories to maintain a live source of truth.
+                 </p>
               </div>
             </div>
-          ))}
+          </div>
+
         </div>
       </div>
     </div>
   )
 }
+
+const ChevronRightIcon = ({ className }: { className?: string }) => (
+  <svg className={`w-5 h-5 ${className}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+  </svg>
+)
 
 export default Dashboard
