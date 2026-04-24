@@ -340,12 +340,12 @@ Notes: ${selectedIssue.notes || 'N/A'}
                           
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-3">
-                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Technical Requirements</label>
-                              <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 text-sm text-slate-600 leading-relaxed font-medium max-h-48 overflow-y-auto" dangerouslySetInnerHTML={{ __html: selectedIssue.requirements || '<span class="italic opacity-50">None</span>' }} />
+                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Requirements</label>
+                              <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 text-sm text-slate-600 leading-relaxed font-medium max-h-48 overflow-y-auto" dangerouslySetInnerHTML={{ __html: selectedIssue.requirements || '<span class="italic opacity-50">No requirements found</span>' }} />
                             </div>
                             <div className="space-y-3">
                               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Notes</label>
-                              <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 text-sm text-slate-600 leading-relaxed font-medium max-h-48 overflow-y-auto" dangerouslySetInnerHTML={{ __html: selectedIssue.notes || '<span class="italic opacity-50">None</span>' }} />
+                              <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 text-sm text-slate-600 leading-relaxed font-medium max-h-48 overflow-y-auto" dangerouslySetInnerHTML={{ __html: selectedIssue.notes || '<span class="italic opacity-50">No notes found</span>' }} />
                             </div>
                           </div>
 
