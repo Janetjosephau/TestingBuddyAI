@@ -143,6 +143,39 @@ Additional Context: ${additionalContext || 'N/A'}
     toast.success('Exported as JSON')
   }
 
+  const handleExportExcel = () => {
+    if (!generatedContent) return
+    let content: any = {}
+    try {
+      content = JSON.parse(generatedContent.content)
+    } catch {
+      toast.error('Could not parse content for export')
+      return
+    }
+
+    const headers = ['Section', 'Content']
+    const rows = [
+      ['Plan Name', generatedContent.name],
+      ['Objectives', (content.objectives || []).join('; ')],
+      ['Strategy', content.strategy || ''],
+      ['Timeline', content.timeline || ''],
+      ['Exit Criteria', (content.exitCriteria || []).join('; ')]
+    ]
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${(cell || '').toString().replace(/"/g, '""')}"`).join(','))
+    ].join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `test-plan-${selectedIssue?.key || 'export'}.csv`)
+    link.click()
+    toast.success('Exported to Excel (CSV)')
+  }
+
   return (
     <div className="min-h-screen bg-[#f8fafc] p-12">
       <div className="max-w-5xl mx-auto space-y-8">
@@ -343,7 +376,10 @@ Additional Context: ${additionalContext || 'N/A'}
               })()}
             </div>
             <div className="p-8 bg-slate-50 flex gap-4">
-              <button onClick={handleExportJson} className="flex-1 h-12 bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-2">
+              <button onClick={handleExportExcel} className="flex-1 h-12 bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-100">
+                <Download size={18} /> Export Excel
+              </button>
+              <button onClick={handleExportJson} className="flex-1 h-12 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold flex items-center justify-center gap-2">
                 <Download size={18} /> Export JSON
               </button>
               <button onClick={() => setShowGeneratedModal(false)} className="px-8 h-12 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold">Close</button>

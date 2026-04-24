@@ -3,7 +3,7 @@ import {
   Download, RefreshCw, Zap, Eye, Trash2, Upload, 
   Database, Loader, FileText, FileCheck, Search, 
   Settings, ChevronRight, CheckCircle2, AlertCircle,
-  FileDown, FileUp, Edit3, Save, X, XCircle
+  FileDown, FileUp, Edit3, Save, X, XCircle, Check
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { generatorApi, rallyApi, llmApi } from '../services/api'
@@ -47,6 +47,7 @@ const TestCaseGenerator: React.FC = () => {
   const [selectedLlmId, setSelectedLlmId] = useState('')
   const [additionalContext, setAdditionalContext] = useState('')
   const [generatedTestCases, setGeneratedTestCases] = useState<TestCase[]>([])
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [syncResult, setSyncResult] = useState<{ success: boolean; message: string; errors?: string[] } | null>(null)
   const [generationError, setGenerationError] = useState<{ title: string; detail: string } | null>(null)
@@ -109,6 +110,8 @@ Notes: ${selectedIssue.notes || 'N/A'}
 
       if (res.data.success) {
         setGeneratedTestCases(res.data.testCases)
+        // Auto-select all by default
+        setSelectedIds(new Set(res.data.testCases.map((tc: any) => tc.id)))
         setActiveTab('review')
         toast.success('Test cases generated!')
       } else {
@@ -132,13 +135,74 @@ Notes: ${selectedIssue.notes || 'N/A'}
   }
 
   const handleExport = () => {
-    const blob = new Blob([JSON.stringify(generatedTestCases, null, 2)], { type: 'application/json' })
+    const toExport = generatedTestCases.filter(tc => selectedIds.has(tc.id))
+    if (toExport.length === 0) {
+      toast.error('Please select at least one test case')
+      return
+    }
+
+    const blob = new Blob([JSON.stringify(toExport, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
     link.download = `test-cases-${selectedIssue?.key || 'export'}.json`
     link.click()
-    toast.success('Exported to JSON')
+    toast.success(`Exported ${toExport.length} cases to JSON`)
+  }
+
+  const handleExportExcel = () => {
+    const toExport = generatedTestCases.filter(tc => selectedIds.has(tc.id))
+    if (toExport.length === 0) {
+      toast.error('Please select at least one test case')
+      return
+    }
+
+    const headers = ['ID', 'Title', 'Priority', 'Preconditions', 'Steps', 'Expected Results', 'Postconditions']
+    const csvContent = [
+      headers.join(','),
+      ...toExport.map(tc => {
+        const preconditions = `"${tc.preconditions.join('; ').replace(/"/g, '""')}"`
+        const steps = `"${tc.steps.map(s => s.action).join('; ').replace(/"/g, '""')}"`
+        const expected = `"${tc.steps.map(s => s.expectedResult).join('; ').replace(/"/g, '""')}"`
+        const postconditions = `"${tc.postconditions.join('; ').replace(/"/g, '""')}"`
+        
+        return [
+          tc.caseId,
+          `"${tc.title.replace(/"/g, '""')}"`,
+          tc.priority,
+          preconditions,
+          steps,
+          expected,
+          postconditions
+        ].join(',')
+      })
+    ].join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `test-cases-${selectedIssue?.key || 'export'}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    toast.success(`Exported ${toExport.length} cases to Excel (CSV)`)
+  }
+
+  const toggleSelect = (id: string) => {
+    const newSelected = new Set(selectedIds)
+    if (newSelected.has(id)) newSelected.delete(id)
+    else newSelected.add(id)
+    setSelectedIds(newSelected)
+  }
+
+  const toggleAll = () => {
+    if (selectedIds.size === generatedTestCases.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(generatedTestCases.map(tc => tc.id)))
+    }
   }
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,18 +222,22 @@ Notes: ${selectedIssue.notes || 'N/A'}
   }
 
   const handleUploadToRally = async () => {
-    if (generatedTestCases.length === 0) return
+    const toUpload = generatedTestCases.filter(tc => selectedIds.has(tc.id))
+    if (toUpload.length === 0) {
+      toast.error('Please select cases to sync')
+      return
+    }
     
     setUploading(true)
     setSyncResult(null)
     try {
       const res = await rallyApi.upload({
-        testCases: generatedTestCases,
+        testCases: toUpload,
         storyKey: selectedIssue?.key
       })
       
       setSyncResult(res.data)
-      if (res.data.success) toast.success('Uploaded to Rally')
+      if (res.data.success) toast.success(`Synced ${toUpload.length} cases to Rally`)
       else toast.error('Upload failed')
     } catch (e: any) {
       toast.error('Rally connection error')
@@ -354,9 +422,30 @@ Notes: ${selectedIssue.notes || 'N/A'}
             {activeTab === 'review' && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-black text-slate-900">Review Results ({generatedTestCases.length})</h2>
-                  <div className="flex space-x-4">
-                    <button onClick={handleExport} className="flex items-center space-x-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-all font-bold text-xs text-emerald-700">
+                  <div className="flex items-center space-x-4">
+                    <h2 className="text-xl font-black text-slate-900">Review Results ({generatedTestCases.length})</h2>
+                    <div className="h-6 w-px bg-slate-200" />
+                    <button 
+                      onClick={toggleAll}
+                      className="flex items-center space-x-2 text-xs font-black text-emerald-600 hover:text-emerald-700 transition-colors uppercase tracking-wider"
+                    >
+                      {selectedIds.size === generatedTestCases.length ? '( Deselect All )' : '( Select All )'}
+                    </button>
+                    <span className="text-[10px] font-black text-slate-400 bg-slate-100 px-2 py-1 rounded tracking-widest">{selectedIds.size} SELECTED</span>
+                  </div>
+                  <div className="flex space-x-3">
+                    <button 
+                      onClick={handleExportExcel} 
+                      disabled={selectedIds.size === 0}
+                      className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all font-bold text-xs shadow-lg shadow-emerald-100 disabled:opacity-50"
+                    >
+                      <FileUp size={16} /> <span>Export Excel</span>
+                    </button>
+                    <button 
+                      onClick={handleExport} 
+                      disabled={selectedIds.size === 0}
+                      className="flex items-center space-x-2 px-4 py-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-all font-bold text-xs text-slate-600 disabled:opacity-50"
+                    >
                       <FileDown size={16} /> <span>Export JSON</span>
                     </button>
                   </div>
@@ -364,11 +453,22 @@ Notes: ${selectedIssue.notes || 'N/A'}
 
                 <div className="grid grid-cols-1 gap-6">
                   {generatedTestCases.map((tc, idx) => (
-                    <div key={tc.id} className="bg-white border-2 border-slate-50 rounded-2xl overflow-hidden hover:border-emerald-200 transition-all">
-                      <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                         <div className="flex items-center space-x-3">
-                           <span className="text-xs font-black text-slate-400">{tc.caseId}</span>
-                           <h4 className="font-black text-slate-800">{tc.title}</h4>
+                    <div 
+                      key={tc.id} 
+                      className={`bg-white border-2 rounded-2xl overflow-hidden transition-all ${selectedIds.has(tc.id) ? 'border-emerald-500 shadow-lg shadow-emerald-50' : 'border-slate-50 hover:border-slate-200'}`}
+                    >
+                      <div 
+                        className={`p-4 border-b flex items-center justify-between cursor-pointer ${selectedIds.has(tc.id) ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 border-slate-100'}`}
+                        onClick={() => toggleSelect(tc.id)}
+                      >
+                         <div className="flex items-center space-x-4">
+                           <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${selectedIds.has(tc.id) ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-white border-slate-300 shadow-inner'}`}>
+                             {selectedIds.has(tc.id) && <Check size={14} strokeWidth={4} />}
+                           </div>
+                           <div className="flex items-center space-x-3">
+                             <span className="text-xs font-black text-slate-400">{tc.caseId}</span>
+                             <h4 className="font-black text-slate-800">{tc.title}</h4>
+                           </div>
                          </div>
                          <span className="px-2 py-1 bg-white border border-slate-200 text-[10px] font-black rounded uppercase text-slate-500">{tc.priority}</span>
                       </div>
@@ -406,8 +506,14 @@ Notes: ${selectedIssue.notes || 'N/A'}
                 </div>
                 <h2 className="text-3xl font-black text-slate-900">Synchronize to Rally</h2>
                 <p className="text-slate-500 font-medium text-lg leading-relaxed">
-                  Upload {generatedTestCases.length} verified test cases directly to Rally story <span className="font-black text-slate-900">{selectedIssue?.key}</span>.
+                  Upload <span className="text-emerald-600 font-black">{selectedIds.size} selected</span> test cases directly to Rally story <span className="font-black text-slate-900">{selectedIssue?.key}</span>.
                 </p>
+
+                {selectedIds.size === 0 && (
+                  <div className="bg-orange-50 border border-orange-100 p-4 rounded-xl text-orange-800 font-bold text-sm">
+                    ⚠️ No test cases selected. Please go back to the Review tab to select cases to sync.
+                  </div>
+                )}
 
                 {syncResult && (
                   <div className={`p-6 rounded-2xl border-2 ${syncResult.success ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-red-50 border-red-100 text-red-800'}`}>
