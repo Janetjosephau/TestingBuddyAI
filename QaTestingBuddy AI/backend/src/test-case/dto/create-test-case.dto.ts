@@ -30,4 +30,13 @@ export class CreateTestCaseDto {
   @IsOptional()
   @IsEnum(['draft', 'selected', 'synced_to_rally'])
   status?: string;
+
+  @IsOptional()
+  @IsString()
+  testData?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  automationTags?: string[];
 }

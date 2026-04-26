@@ -91,6 +91,8 @@ model TestCase {
   postconditions String   // JSON array
   priority       String   @default("medium") // "low" | "medium" | "high" | "critical"
   status         String   @default("draft") // "draft" | "selected" | "synced_to_rally"
+  testData       String?  // JSON string
+  automationTags String?  // JSON string (array of tags)
   createdAt      DateTime @default(now())
 
   // Relations

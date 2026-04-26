@@ -105,6 +105,8 @@ interface TestCase {
   postconditions: string[];
   priority: "low" | "medium" | "high" | "critical";
   status: "draft" | "selected" | "synced_to_rally";
+  testData?: string;
+  automationTags?: string[];
   createdAt: ISO8601;
 }
 ```

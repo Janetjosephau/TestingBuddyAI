@@ -17,6 +17,8 @@ interface TestCase {
   postconditions: string[]
   priority: string
   status: string
+  testData?: string
+  automationTags?: string[]
 }
 
 interface RallyRequirement {
@@ -471,22 +473,44 @@ Notes: ${selectedIssue.notes || 'N/A'}
                       </div>
                       <div className="p-6 space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                           <div>
-                             <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Preconditions</h5>
-                             <ul className="space-y-1">
-                               {tc.preconditions.map((p, i) => <li key={i} className="text-sm font-medium text-slate-600 flex items-center space-x-2"><div className="w-1.5 h-1.5 bg-emerald-400 rounded-full" /> <span>{p}</span></li>)}
-                             </ul>
-                           </div>
-                           <div>
-                             <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Steps</h5>
-                             <div className="space-y-3">
-                               {tc.steps.map((s, i) => (
-                                 <div key={i} className="text-xs p-3 bg-slate-50 rounded-lg border border-slate-100">
-                                   <p className="font-black text-slate-800">{i+1}. {s.action}</p>
-                                   <p className="text-emerald-600 font-bold mt-1">Expected: {s.expectedResult}</p>
-                                 </div>
-                               ))}
+                           <div className="space-y-6">
+                             <div>
+                               <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Preconditions</h5>
+                               <ul className="space-y-1">
+                                 {tc.preconditions.map((p, i) => <li key={i} className="text-sm font-medium text-slate-600 flex items-center space-x-2"><div className="w-1.5 h-1.5 bg-emerald-400 rounded-full" /> <span>{p}</span></li>)}
+                               </ul>
                              </div>
+                             {tc.testData && (
+                               <div>
+                                 <h5 className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-3">Test Data</h5>
+                                 <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg text-xs font-bold text-amber-900">
+                                   {typeof tc.testData === 'string' ? tc.testData : JSON.stringify(tc.testData, null, 2)}
+                                 </div>
+                               </div>
+                             )}
+                           </div>
+                           <div className="space-y-6">
+                             <div>
+                               <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Steps</h5>
+                               <div className="space-y-3">
+                                 {tc.steps.map((s, i) => (
+                                   <div key={i} className="text-xs p-3 bg-slate-50 rounded-lg border border-slate-100">
+                                     <p className="font-black text-slate-800">{i+1}. {s.action}</p>
+                                     <p className="text-emerald-600 font-bold mt-1">Expected: {s.expectedResult}</p>
+                                   </div>
+                                 ))}
+                               </div>
+                             </div>
+                             {tc.automationTags && tc.automationTags.length > 0 && (
+                               <div>
+                                 <h5 className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-3">Automation Tags</h5>
+                                 <div className="flex flex-wrap gap-2">
+                                   {tc.automationTags.map((tag, i) => (
+                                     <span key={i} className="px-2 py-1 bg-blue-50 text-blue-600 text-[10px] font-black rounded border border-blue-100 uppercase tracking-wider">{tag}</span>
+                                   ))}
+                                 </div>
+                               </div>
+                             )}
                            </div>
                         </div>
                       </div>

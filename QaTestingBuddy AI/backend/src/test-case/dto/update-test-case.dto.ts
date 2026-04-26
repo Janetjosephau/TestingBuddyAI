@@ -1,4 +1,4 @@
-﻿import { IsString, IsArray, IsEnum, IsOptional } from 'class-validator';
+import { IsString, IsArray, IsEnum, IsOptional } from 'class-validator';
 
 export class UpdateTestCaseDto {
   @IsOptional()
@@ -37,4 +37,13 @@ export class UpdateTestCaseDto {
   @IsOptional()
   @IsEnum(['draft', 'selected', 'synced_to_rally'])
   status?: string;
+
+  @IsOptional()
+  @IsString()
+  testData?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  automationTags?: string[];
 }
