@@ -164,32 +164,32 @@ const Dashboard: React.FC = () => {
           <div className="space-y-8">
             <h2 className="text-2xl font-black text-[#0f172a]">Quick Launch</h2>
             <div className="space-y-4">
-              <Link to="/generator/test-plan" className="block p-6 bg-emerald-50 border-2 border-emerald-100 rounded-3xl hover:bg-emerald-100 hover:border-emerald-200 transition-all group">
+              <Link to="/generator/test-plan" className="block p-6 bg-emerald-600 border-2 border-emerald-500 rounded-3xl hover:bg-emerald-700 transition-all group shadow-lg shadow-emerald-600/10">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600">
+                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-white">
                     <FileText size={20} />
                   </div>
-                  <PlusCircle size={20} className="text-emerald-300 group-hover:text-emerald-500 transition-colors" />
+                  <PlusCircle size={20} className="text-white/40 group-hover:text-white transition-colors" />
                 </div>
-                <h4 className="text-emerald-900 font-bold text-lg mb-1">Create Test Plan</h4>
-                <p className="text-emerald-700/60 text-sm font-medium">Generate comprehensive plans from Rally stories.</p>
+                <h4 className="text-white font-bold text-lg mb-1">Create Test Plan</h4>
+                <p className="text-emerald-50 text-sm font-medium">Generate comprehensive plans from Rally stories.</p>
               </Link>
 
-              <Link to="/generator/test-case" className="block p-6 bg-emerald-50 border-2 border-emerald-100 rounded-3xl hover:bg-emerald-100 hover:border-emerald-200 transition-all group">
+              <Link to="/generator/test-case" className="block p-6 bg-emerald-600 border-2 border-emerald-500 rounded-3xl hover:bg-emerald-700 transition-all group shadow-lg shadow-emerald-600/10">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600">
+                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-white">
                     <BarChart3 size={20} />
                   </div>
-                  <PlusCircle size={20} className="text-emerald-300 group-hover:text-emerald-500 transition-colors" />
+                  <PlusCircle size={20} className="text-white/40 group-hover:text-white transition-colors" />
                 </div>
-                <h4 className="text-emerald-900 font-bold text-lg mb-1">Create Test Cases</h4>
-                <p className="text-emerald-700/60 text-sm font-medium">Create test cases with AI precision.</p>
+                <h4 className="text-white font-bold text-lg mb-1">Create Test Cases</h4>
+                <p className="text-emerald-50 text-sm font-medium">Create test cases with AI precision.</p>
               </Link>
               
-              <div className="p-8 bg-emerald-50 border-2 border-emerald-100 rounded-3xl text-emerald-900 relative overflow-hidden">
-                 <Zap size={80} className="absolute -right-4 -bottom-4 text-emerald-200/40 rotate-12" />
+              <div className="p-8 bg-emerald-600 border-2 border-emerald-500 rounded-3xl text-white relative overflow-hidden shadow-lg shadow-emerald-600/10">
+                 <Zap size={80} className="absolute -right-4 -bottom-4 text-white/10 rotate-12" />
                  <h4 className="font-black text-xl mb-2 relative z-10">AI Power Tip</h4>
-                 <p className="text-emerald-700/80 text-sm font-medium relative z-10 leading-relaxed">
+                 <p className="text-emerald-50 text-sm font-medium relative z-10 leading-relaxed">
                    Sync your generated test cases directly back to Rally US/Stories to maintain a live source of truth.
                  </p>
               </div>
