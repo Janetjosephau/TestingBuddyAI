@@ -46,14 +46,21 @@ const RallyIntegration: React.FC = () => {
     }
     setTesting(true)
     try {
+      console.log('Testing Rally connection with URL:', formData.instanceUrl)
       const response = await rallyApi.testConnection(formData)
-      if (response.data?.success || response.data?.status === 'connected') {
+      console.log('Rally response:', response.data)
+      
+      if (response.data && (response.data.success || response.data.status === 'connected')) {
         toast.success(response.data.message || 'Rally Connection Successful!')
       } else {
-        toast.error(response.data.message || 'Rally connection failed')
+        const errorMsg = response.data?.message || 'Rally connection failed'
+        toast.error(errorMsg)
+        setErrorModal({ title: 'Connection Refused', detail: errorMsg })
       }
     } catch (error: any) {
-      setErrorModal({ title: 'Operation Failed', detail: error?.response?.data?.message || 'Rally connection failed. Please check your credentials.' })
+      console.error('Rally test error:', error)
+      const errorMessage = error?.response?.data?.message || error.message || 'Rally connection failed. Please check your credentials.'
+      setErrorModal({ title: 'Operation Failed', detail: errorMessage })
     } finally {
       setTesting(false)
     }
@@ -226,6 +233,7 @@ const RallyIntegration: React.FC = () => {
         )}
       </div>
 
+      {/* Delete Confirmation Modal */}
       {deleteConfirmId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setDeleteConfirmId(null)} />
@@ -240,6 +248,36 @@ const RallyIntegration: React.FC = () => {
                 <button onClick={() => setDeleteConfirmId(null)} className="flex-1 h-14 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-all">Cancel</button>
                 <button onClick={confirmDelete} className="flex-1 h-14 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all">Yes, Delete</button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Modal */}
+      {errorModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setErrorModal(null)} />
+          <div className="relative w-full max-w-lg bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-300">
+            <div className="h-2 w-full bg-gradient-to-r from-red-500 to-rose-500" />
+            <div className="p-10">
+              <div className="flex items-start space-x-4 mb-6">
+                <div className="w-14 h-14 rounded-2xl bg-red-50 border-2 border-red-100 flex items-center justify-center flex-shrink-0">
+                  <XCircle size={32} className="text-red-500" />
+                </div>
+                <div className="pt-1">
+                  <h2 className="text-xl font-black text-slate-900">{errorModal?.title}</h2>
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-1">Rally Integration · Error</p>
+                </div>
+              </div>
+              <div className="bg-red-50 border border-red-100 rounded-2xl p-5 mb-8">
+                <p className="text-sm font-bold text-red-700 leading-relaxed">{errorModal?.detail}</p>
+              </div>
+              <button
+                onClick={() => setErrorModal(null)}
+                className="w-full h-12 bg-slate-900 text-white rounded-xl font-black hover:bg-slate-800 transition-all"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
