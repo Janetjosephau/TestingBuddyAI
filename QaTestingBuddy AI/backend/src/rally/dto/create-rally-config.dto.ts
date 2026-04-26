@@ -11,11 +11,9 @@ export class CreateRallyConfigDto {
 
   @IsOptional()
   @IsString()
-  @Length(1, 100)
   workspaceName?: string;
 
   @IsOptional()
   @IsString()
-  @Length(1, 100)
   projectName?: string;
 }
