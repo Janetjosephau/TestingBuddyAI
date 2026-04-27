@@ -647,7 +647,18 @@ Notes: ${selectedIssue.notes || 'N/A'}
                       {syncResult.success ? <CheckCircle2 size={24} /> : <AlertCircle size={24} />}
                       <h4 className="font-black text-lg">{syncResult.success ? 'Success' : 'Failed'}</h4>
                     </div>
-                    <p className="font-bold">{syncResult.message}</p>
+                    <p className="font-bold mb-4">{syncResult.message}</p>
+                    
+                    {syncResult.errors && syncResult.errors.length > 0 && (
+                      <div className="mt-4 text-left bg-white/50 rounded-xl p-4 space-y-2 border border-black/5">
+                        <p className="text-[10px] font-black uppercase tracking-widest opacity-50">Detailed Error Logs</p>
+                        <ul className="space-y-1">
+                          {syncResult.errors.map((err: string, i: number) => (
+                            <li key={i} className="text-xs font-bold font-mono break-all">• {err}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 )}
 
