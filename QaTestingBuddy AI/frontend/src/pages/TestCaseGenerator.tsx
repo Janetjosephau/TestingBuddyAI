@@ -594,11 +594,11 @@ Notes: ${selectedIssue.notes || 'N/A'}
                              </div>
                              {tc.testData !== undefined && (
                                <div>
-                                 <h5 className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-3">Test Data</h5>
+                                 <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Test Data</h5>
                                  <textarea 
                                    value={typeof tc.testData === 'string' ? tc.testData : JSON.stringify(tc.testData, null, 2)}
                                    onChange={(e) => updateTestCase(tc.id, { testData: e.target.value })}
-                                   className="w-full h-24 p-3 bg-amber-50 border border-amber-100 rounded-lg text-xs font-bold text-amber-900 outline-none focus:border-amber-300 resize-none"
+                                   className="w-full h-24 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 resize-none"
                                    placeholder="Enter test data required..."
                                  />
                                </div>
