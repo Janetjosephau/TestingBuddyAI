@@ -32,9 +32,8 @@ export class TestCaseService {
         "preconditions": ["List of strings"],
         "steps": [{"action": "string", "expectedResult": "string"}],
         "postconditions": ["List of strings"],
-        "priority": "high", // "low", "medium", "high", "critical"
-        "testData": "JSON string or description of data required",
-        "automationTags": ["smoke", "regression", "api", "ui"] 
+        "priority": "Medium", // "Low", "Medium", "High"
+        "testData": "JSON string or description of data required"
       }
       
       CRITICAL: Return ONLY valid JSON starting with [ and ending with ]. Do NOT include any markdown formatting, backticks, or intro/outro text.
@@ -56,10 +55,9 @@ export class TestCaseService {
             preconditions: JSON.stringify(tc.preconditions || []),
             steps: JSON.stringify(tc.steps || []),
             postconditions: JSON.stringify(tc.postconditions || []),
-            priority: tc.priority || 'medium',
+            priority: tc.priority || 'Medium',
             testData: tc.testData ? JSON.stringify(tc.testData) : null,
-            automationTags: tc.automationTags ? JSON.stringify(tc.automationTags) : null,
-            status: 'draft',
+            status: 'New',
           }
         });
         
@@ -69,7 +67,6 @@ export class TestCaseService {
           steps: JSON.parse(saved.steps),
           postconditions: JSON.parse(saved.postconditions),
           testData: saved.testData ? JSON.parse(saved.testData) : null,
-          automationTags: saved.automationTags ? JSON.parse(saved.automationTags) : null,
         });
       }
 
@@ -116,7 +113,6 @@ export class TestCaseService {
         steps: JSON.stringify(createTestCaseDto.steps || []),
         postconditions: JSON.stringify(createTestCaseDto.postconditions || []),
         testData: createTestCaseDto.testData ? JSON.stringify(createTestCaseDto.testData) : null,
-        automationTags: createTestCaseDto.automationTags ? JSON.stringify(createTestCaseDto.automationTags) : null,
       },
     });
   }
@@ -131,7 +127,6 @@ export class TestCaseService {
       steps: JSON.parse(tc.steps),
       postconditions: JSON.parse(tc.postconditions),
       testData: tc.testData ? JSON.parse(tc.testData) : null,
-      automationTags: tc.automationTags ? JSON.parse(tc.automationTags) : null,
     }));
   }
 
@@ -147,7 +142,6 @@ export class TestCaseService {
       steps: JSON.parse(testCase.steps),
       postconditions: JSON.parse(testCase.postconditions),
       testData: testCase.testData ? JSON.parse(testCase.testData) : null,
-      automationTags: testCase.automationTags ? JSON.parse(testCase.automationTags) : null,
     };
   }
 
@@ -157,7 +151,6 @@ export class TestCaseService {
     if (updateTestCaseDto.steps) data.steps = JSON.stringify(updateTestCaseDto.steps);
     if (updateTestCaseDto.postconditions) data.postconditions = JSON.stringify(updateTestCaseDto.postconditions);
     if (updateTestCaseDto.testData) data.testData = JSON.stringify(updateTestCaseDto.testData);
-    if (updateTestCaseDto.automationTags) data.automationTags = JSON.stringify(updateTestCaseDto.automationTags);
 
     return this.prisma.testCase.update({
       where: { id },

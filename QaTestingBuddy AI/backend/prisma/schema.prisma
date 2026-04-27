@@ -78,6 +78,7 @@ model TestPlan {
   jiraConfigId String?
   testCases    TestCase[]
 
+  @@index([generatedAt])
   @@map("test_plans")
 }
 
@@ -89,14 +90,18 @@ model TestCase {
   preconditions  String   // JSON array
   steps          String   // JSON array of step objects
   postconditions String   // JSON array
-  priority       String   @default("medium") // "low" | "medium" | "high" | "critical"
-  status         String   @default("draft") // "draft" | "selected" | "synced_to_rally"
+  priority       String   @default("Medium") // "Low" | "Medium" | "High"
+  status         String   @default("New")    // "New" | "In review" | "Approved" | "Retired"
+  method         String?  @default("Manual") // "Manual" | "Automate"
+  type           String?  @default("Functional") // "Functional" | "Performance"
+  workProduct    String?
+  testFolder     String?
   testData       String?  // JSON string
-  automationTags String?  // JSON string (array of tags)
   createdAt      DateTime @default(now())
 
   // Relations
   testPlan       TestPlan @relation(fields: [testPlanId], references: [id])
 
+  @@index([createdAt])
   @@map("test_cases")
 }

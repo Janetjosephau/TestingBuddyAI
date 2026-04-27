@@ -24,19 +24,30 @@ export class CreateTestCaseDto {
   @IsString({ each: true })
   postconditions: string[];
 
-  @IsEnum(['low', 'medium', 'high', 'critical'])
+  @IsEnum(['Low', 'Medium', 'High'])
   priority: string;
 
   @IsOptional()
-  @IsEnum(['draft', 'selected', 'synced_to_rally'])
+  @IsEnum(['New', 'In review', 'Approved', 'Retired'])
   status?: string;
+
+  @IsOptional()
+  @IsEnum(['Manual', 'Automate'])
+  method?: string;
+
+  @IsOptional()
+  @IsEnum(['Functional', 'Performance'])
+  type?: string;
+
+  @IsOptional()
+  @IsString()
+  workProduct?: string;
+
+  @IsOptional()
+  @IsString()
+  testFolder?: string;
 
   @IsOptional()
   @IsString()
   testData?: string;
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  automationTags?: string[];
 }

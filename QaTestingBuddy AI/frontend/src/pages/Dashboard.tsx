@@ -46,12 +46,9 @@ const Dashboard: React.FC = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const [metricsRes, activityRes] = await Promise.all([
-        dashboardApi.getMetrics(),
-        dashboardApi.getActivity()
-      ])
-      setMetrics(metricsRes.data)
-      setActivities(activityRes.data)
+      const res = await dashboardApi.getOverview()
+      setMetrics(res.data.metrics)
+      setActivities(res.data.activity)
     } catch (error) {
       console.error('Failed to fetch dashboard data', error)
     } finally {

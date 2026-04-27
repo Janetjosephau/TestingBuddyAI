@@ -105,8 +105,13 @@ export class RallyService {
         const payload: any = {
           "TestCase": {
             "Name": tc.title || "AI Generated Test Case",
-            "Description": description,
+            "Description": `
+              ${tc.testFolder ? `<b>Test Folder:</b> ${tc.testFolder}<br/><br/>` : ''}
+              ${description}
+            `.trim(),
             "Priority": tc.priority || "Medium",
+            "Method": tc.method === 'Automate' ? 'Automated' : (tc.method || 'Manual'),
+            "Type": tc.type || 'Functional'
           }
         };
 

@@ -54,6 +54,7 @@ export const testCaseApi = {
 };
 
 export const dashboardApi = {
+  getOverview: () => api.get('/dashboard/overview'),
   getMetrics: () => api.get('/dashboard/metrics'),
   getActivity: () => api.get('/dashboard/activity'),
 };

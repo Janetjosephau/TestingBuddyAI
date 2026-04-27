@@ -18,7 +18,10 @@ interface TestCase {
   priority: string
   status: string
   testData?: string
-  automationTags?: string[]
+  method?: string
+  type?: string
+  workProduct?: string
+  testFolder?: string
 }
 
 interface RallyRequirement {
@@ -56,9 +59,23 @@ const TestCaseGenerator: React.FC = () => {
   const [syncResult, setSyncResult] = useState<{ success: boolean; message: string; errors?: string[] } | null>(null)
   const [errorModal, setErrorModal] = useState<{ title: string; detail: string } | null>(null)
 
+  // Batch Edit Fields
+  const [batchMethod, setBatchMethod] = useState('Manual')
+  const [batchStatus, setBatchStatus] = useState('New')
+  const [batchPriority, setBatchPriority] = useState('Medium')
+  const [batchType, setBatchType] = useState('Functional')
+  const [batchWorkProduct, setBatchWorkProduct] = useState('')
+  const [batchTestFolder, setBatchTestFolder] = useState('')
+
   useEffect(() => {
     loadPrerequisites()
   }, [])
+
+  useEffect(() => {
+    if (selectedIssue) {
+      setBatchWorkProduct(selectedIssue.key)
+    }
+  }, [selectedIssue])
 
   const loadPrerequisites = async () => {
     try {
@@ -235,7 +252,18 @@ Notes: ${selectedIssue.notes || 'N/A'}
   }
 
   const handleUploadToRally = async () => {
-    const toUpload = generatedTestCases.filter(tc => selectedIds.has(tc.id))
+    const toUpload = generatedTestCases
+      .filter(tc => selectedIds.has(tc.id))
+      .map(tc => ({
+        ...tc,
+        method: batchMethod,
+        status: batchStatus,
+        priority: batchPriority,
+        type: batchType,
+        workProduct: batchWorkProduct,
+        testFolder: batchTestFolder
+      }))
+
     if (toUpload.length === 0) {
       toast.error('Please select cases to sync')
       return
@@ -246,7 +274,7 @@ Notes: ${selectedIssue.notes || 'N/A'}
     try {
       const res = await rallyApi.upload({
         testCases: toUpload,
-        storyKey: selectedIssue?.key,
+        storyKey: batchWorkProduct || selectedIssue?.key,
         rallyConfigId: selectedRallyId
       })
       
@@ -450,6 +478,75 @@ Notes: ${selectedIssue.notes || 'N/A'}
                   </div>
                 </div>
 
+                <div className="bg-white border-2 border-slate-100 rounded-3xl p-6 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 shadow-sm">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Method</label>
+                    <select 
+                      value={batchMethod}
+                      onChange={(e) => setBatchMethod(e.target.value)}
+                      className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-emerald-500 transition-all"
+                    >
+                      <option value="Manual">Manual</option>
+                      <option value="Automate">Automate</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</label>
+                    <select 
+                      value={batchStatus}
+                      onChange={(e) => setBatchStatus(e.target.value)}
+                      className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-emerald-500 transition-all"
+                    >
+                      <option value="New">New</option>
+                      <option value="In review">In review</option>
+                      <option value="Approved">Approved</option>
+                      <option value="Retired">Retired</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Priority</label>
+                    <select 
+                      value={batchPriority}
+                      onChange={(e) => setBatchPriority(e.target.value)}
+                      className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-emerald-500 transition-all"
+                    >
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Type</label>
+                    <select 
+                      value={batchType}
+                      onChange={(e) => setBatchType(e.target.value)}
+                      className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-emerald-500 transition-all"
+                    >
+                      <option value="Functional">Functional</option>
+                      <option value="Performance">Performance</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Work Product</label>
+                    <input 
+                      type="text"
+                      value={batchWorkProduct}
+                      onChange={(e) => setBatchWorkProduct(e.target.value)}
+                      className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-emerald-500 transition-all"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Test Folder</label>
+                    <input 
+                      type="text"
+                      value={batchTestFolder}
+                      onChange={(e) => setBatchTestFolder(e.target.value)}
+                      placeholder="Folder path..."
+                      className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-emerald-500 transition-all"
+                    />
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 gap-6">
                   {generatedTestCases.map((tc, idx) => (
                     <div 
@@ -501,16 +598,6 @@ Notes: ${selectedIssue.notes || 'N/A'}
                                  ))}
                                </div>
                              </div>
-                             {tc.automationTags && tc.automationTags.length > 0 && (
-                               <div>
-                                 <h5 className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-3">Automation Tags</h5>
-                                 <div className="flex flex-wrap gap-2">
-                                   {tc.automationTags.map((tag, i) => (
-                                     <span key={i} className="px-2 py-1 bg-blue-50 text-blue-600 text-[10px] font-black rounded border border-blue-100 uppercase tracking-wider">{tag}</span>
-                                   ))}
-                                 </div>
-                               </div>
-                             )}
                            </div>
                         </div>
                       </div>
