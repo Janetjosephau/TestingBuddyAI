@@ -56,16 +56,8 @@ const Dashboard: React.FC = () => {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Loading Intelligence...</p>
-        </div>
-      </div>
-    )
-  }
+  // Remove full-page loading for better perceived performance
+  // if (loading) { ... }
 
   return (
     <div className="min-h-screen bg-[#f8fafc] p-8 lg:p-12">
@@ -93,27 +85,27 @@ const Dashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <SummaryMetric 
             label="Total Test Plans" 
-            value={metrics?.totalTestPlans || 0} 
+            value={loading ? "..." : (metrics?.totalTestPlans || 0)} 
             icon={FileText} 
             colorClass="text-emerald-600"
-            trend={{ value: 12, label: "vs last month" }}
+            trend={loading ? undefined : { value: 12, label: "vs last month" }}
           />
           <SummaryMetric 
             label="Total Test Cases" 
-            value={metrics?.totalTestCases || 0} 
+            value={loading ? "..." : (metrics?.totalTestCases || 0)} 
             icon={CheckCircle2} 
             colorClass="text-blue-600"
-            trend={{ value: 5, label: "this week" }}
+            trend={loading ? undefined : { value: 5, label: "this week" }}
           />
           <SummaryMetric 
             label="AI Sync Accuracy" 
-            value={`${metrics?.coverage.coverage_percentage || 100}%`} 
+            value={loading ? "..." : `${metrics?.coverage.coverage_percentage || 100}%`} 
             icon={Zap} 
             colorClass="text-amber-500"
           />
           <SummaryMetric 
             label="Active Connections" 
-            value={(metrics?.activeLLMs || 0) + (metrics?.activeRally || 0)} 
+            value={loading ? "..." : ((metrics?.activeLLMs || 0) + (metrics?.activeRally || 0))} 
             icon={RefreshCw} 
             colorClass="text-rose-500"
           />
@@ -131,25 +123,40 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="space-y-4">
-              {activities.length > 0 ? activities.map((activity, idx) => (
-                <div 
-                  key={activity.id || idx} 
-                  className="bg-white rounded-3xl border border-slate-100 p-6 flex items-center justify-between group hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-500/5 transition-all animate-in fade-in slide-in-from-bottom-2 duration-500"
-                >
-                  <div className="flex items-center space-x-5">
-                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
-                      <Clock size={22} />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-[#0f172a] group-hover:text-emerald-700 transition-colors">{activity.title}</h3>
-                      <p className="text-sm text-slate-400 font-medium">
-                        {new Date(activity.timestamp).toLocaleString()} • <span className="text-emerald-500">Completed</span>
-                      </p>
+              {loading ? (
+                // Skeleton Activity
+                [1, 2, 3].map(i => (
+                  <div key={i} className="bg-white rounded-3xl border border-slate-100 p-6 flex items-center justify-between animate-pulse">
+                    <div className="flex items-center space-x-5">
+                      <div className="w-12 h-12 bg-slate-50 rounded-2xl" />
+                      <div className="space-y-2">
+                        <div className="h-4 w-48 bg-slate-100 rounded" />
+                        <div className="h-3 w-24 bg-slate-50 rounded" />
+                      </div>
                     </div>
                   </div>
-                  <ChevronRightIcon className="text-slate-300 group-hover:text-emerald-400 transition-all group-hover:translate-x-1" />
-                </div>
-              )) : (
+                ))
+              ) : activities.length > 0 ? (
+                activities.map((activity, idx) => (
+                  <div 
+                    key={activity.id || idx} 
+                    className="bg-white rounded-3xl border border-slate-100 p-6 flex items-center justify-between group hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-500/5 transition-all animate-in fade-in slide-in-from-bottom-2 duration-500"
+                  >
+                    <div className="flex items-center space-x-5">
+                      <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
+                        <Clock size={22} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-[#0f172a] group-hover:text-emerald-700 transition-colors">{activity.title}</h3>
+                        <p className="text-sm text-slate-400 font-medium">
+                          {new Date(activity.timestamp).toLocaleString()} • <span className="text-emerald-500">Completed</span>
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRightIcon className="text-slate-300 group-hover:text-emerald-400 transition-all group-hover:translate-x-1" />
+                  </div>
+                ))
+              ) : (
                 <div className="p-12 text-center bg-white rounded-3xl border border-dashed border-slate-200">
                    <p className="text-slate-400 font-medium italic">No recent activity detected. Start generating to see results!</p>
                 </div>
