@@ -60,10 +60,6 @@ const TestCaseGenerator: React.FC = () => {
   const [errorModal, setErrorModal] = useState<{ title: string; detail: string } | null>(null)
 
   // Batch Edit Fields
-  const [batchMethod, setBatchMethod] = useState('Manual')
-  const [batchStatus, setBatchStatus] = useState('New')
-  const [batchPriority, setBatchPriority] = useState('Medium')
-  const [batchType, setBatchType] = useState('Functional')
   const [batchWorkProduct, setBatchWorkProduct] = useState('')
   const [batchTestFolder, setBatchTestFolder] = useState('')
 
@@ -139,9 +135,17 @@ Notes: ${selectedIssue.notes || 'N/A'}
       })
 
       if (res.data.success) {
-        setGeneratedTestCases(res.data.testCases)
+        // Initialize fields that aren't provided by AI or need defaults
+        const initializedCases = res.data.testCases.map((tc: any) => ({
+          ...tc,
+          method: 'Manual',
+          type: 'Functional',
+          status: tc.status || 'New',
+          priority: tc.priority || 'Medium'
+        }))
+        setGeneratedTestCases(initializedCases)
         // Auto-select all by default
-        setSelectedIds(new Set(res.data.testCases.map((tc: any) => tc.id)))
+        setSelectedIds(new Set(initializedCases.map((tc: any) => tc.id)))
         setActiveTab('review')
         toast.success('Test cases generated!')
       } else {
@@ -260,11 +264,11 @@ Notes: ${selectedIssue.notes || 'N/A'}
       .filter(tc => selectedIds.has(tc.id))
       .map(tc => ({
         ...tc,
-        // Individual fields take precedence, otherwise use batch defaults
-        method: tc.method || batchMethod,
-        status: tc.status || batchStatus,
-        priority: tc.priority || batchPriority,
-        type: tc.type || batchType,
+        // Individual fields are now the primary source of truth
+        method: tc.method || 'Manual',
+        status: tc.status || 'New',
+        priority: tc.priority || 'Medium',
+        type: tc.type || 'Functional',
         workProduct: tc.workProduct || batchWorkProduct,
         testFolder: tc.testFolder || batchTestFolder
       }))
@@ -483,54 +487,7 @@ Notes: ${selectedIssue.notes || 'N/A'}
                   </div>
                 </div>
 
-                <div className="bg-white border-2 border-slate-100 rounded-3xl p-6 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 shadow-sm">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Method</label>
-                    <select 
-                      value={batchMethod}
-                      onChange={(e) => setBatchMethod(e.target.value)}
-                      className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-emerald-500 transition-all"
-                    >
-                      <option value="Manual">Manual</option>
-                      <option value="Automate">Automate</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</label>
-                    <select 
-                      value={batchStatus}
-                      onChange={(e) => setBatchStatus(e.target.value)}
-                      className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-emerald-500 transition-all"
-                    >
-                      <option value="New">New</option>
-                      <option value="In review">In review</option>
-                      <option value="Approved">Approved</option>
-                      <option value="Retired">Retired</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Priority</label>
-                    <select 
-                      value={batchPriority}
-                      onChange={(e) => setBatchPriority(e.target.value)}
-                      className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-emerald-500 transition-all"
-                    >
-                      <option value="Low">Low</option>
-                      <option value="Medium">Medium</option>
-                      <option value="High">High</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Type</label>
-                    <select 
-                      value={batchType}
-                      onChange={(e) => setBatchType(e.target.value)}
-                      className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-emerald-500 transition-all"
-                    >
-                      <option value="Functional">Functional</option>
-                      <option value="Performance">Performance</option>
-                    </select>
-                  </div>
+                <div className="bg-white border-2 border-slate-100 rounded-3xl p-6 grid grid-cols-1 md:grid-cols-2 gap-6 shadow-sm">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Work Product</label>
                     <input 
@@ -582,7 +539,7 @@ Notes: ${selectedIssue.notes || 'N/A'}
                           <div className="space-y-1">
                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Method</label>
                             <select 
-                              value={tc.method || batchMethod}
+                              value={tc.method || 'Manual'}
                               onChange={(e) => updateTestCase(tc.id, { method: e.target.value })}
                               className="w-full h-8 px-2 bg-slate-50 border border-slate-200 rounded text-xs font-bold outline-none focus:border-emerald-500"
                             >
@@ -593,7 +550,7 @@ Notes: ${selectedIssue.notes || 'N/A'}
                           <div className="space-y-1">
                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Status</label>
                             <select 
-                              value={tc.status || batchStatus}
+                              value={tc.status || 'New'}
                               onChange={(e) => updateTestCase(tc.id, { status: e.target.value })}
                               className="w-full h-8 px-2 bg-slate-50 border border-slate-200 rounded text-xs font-bold outline-none focus:border-emerald-500"
                             >
@@ -606,7 +563,7 @@ Notes: ${selectedIssue.notes || 'N/A'}
                           <div className="space-y-1">
                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Priority</label>
                             <select 
-                              value={tc.priority || batchPriority}
+                              value={tc.priority || 'Medium'}
                               onChange={(e) => updateTestCase(tc.id, { priority: e.target.value })}
                               className="w-full h-8 px-2 bg-slate-50 border border-slate-200 rounded text-xs font-bold outline-none focus:border-emerald-500"
                             >
@@ -618,7 +575,7 @@ Notes: ${selectedIssue.notes || 'N/A'}
                           <div className="space-y-1">
                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Type</label>
                             <select 
-                              value={tc.type || batchType}
+                              value={tc.type || 'Functional'}
                               onChange={(e) => updateTestCase(tc.id, { type: e.target.value })}
                               className="w-full h-8 px-2 bg-slate-50 border border-slate-200 rounded text-xs font-bold outline-none focus:border-emerald-500"
                             >
