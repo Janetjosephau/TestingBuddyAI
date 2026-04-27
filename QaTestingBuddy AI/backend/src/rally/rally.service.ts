@@ -113,7 +113,8 @@ export class RallyService {
             `.trim(),
             "Priority": tc.priority || "Medium",
             "Method": tc.method === 'Automate' ? 'Automated' : (tc.method || 'Manual'),
-            "Type": tc.type || 'Functional'
+            "Type": tc.type || 'Functional',
+            "Automate": tc.method === 'Automate' // Set the Automate boolean/field based on method
           }
         };
 
