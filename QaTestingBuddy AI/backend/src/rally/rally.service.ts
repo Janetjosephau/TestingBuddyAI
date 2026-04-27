@@ -86,9 +86,11 @@ export class RallyService {
         if (story) {
           storyRef = story._ref;
           projectRef = story.Project?._ref;
+        } else {
+          errors.push(`Warning: Story ${storyKey} not found in Rally. Test cases will be created but not linked to this story.`);
         }
-      } catch (err) {
-        console.error('Failed to fetch story ref', err);
+      } catch (err: any) {
+        errors.push(`Failed to fetch story ${storyKey}: ${err.message}`);
       }
     }
 
