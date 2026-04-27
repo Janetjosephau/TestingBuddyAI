@@ -251,17 +251,22 @@ Notes: ${selectedIssue.notes || 'N/A'}
     reader.readAsText(file)
   }
 
+  const updateTestCase = (id: string, updates: Partial<TestCase>) => {
+    setGeneratedTestCases(prev => prev.map(tc => tc.id === id ? { ...tc, ...updates } : tc))
+  }
+
   const handleUploadToRally = async () => {
     const toUpload = generatedTestCases
       .filter(tc => selectedIds.has(tc.id))
       .map(tc => ({
         ...tc,
-        method: batchMethod,
-        status: batchStatus,
-        priority: batchPriority,
-        type: batchType,
-        workProduct: batchWorkProduct,
-        testFolder: batchTestFolder
+        // Individual fields take precedence, otherwise use batch defaults
+        method: tc.method || batchMethod,
+        status: tc.status || batchStatus,
+        priority: tc.priority || batchPriority,
+        type: tc.type || batchType,
+        workProduct: tc.workProduct || batchWorkProduct,
+        testFolder: tc.testFolder || batchTestFolder
       }))
 
     if (toUpload.length === 0) {
@@ -566,9 +571,62 @@ Notes: ${selectedIssue.notes || 'N/A'}
                              <h4 className="font-black text-slate-800">{tc.title}</h4>
                            </div>
                          </div>
-                         <span className="px-2 py-1 bg-white border border-slate-200 text-[10px] font-black rounded uppercase text-slate-500">{tc.priority}</span>
+                         <div className="flex items-center space-x-6">
+                            <span className="px-2 py-1 bg-white border border-slate-200 text-[10px] font-black rounded uppercase text-slate-500">{tc.priority}</span>
+                            <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-black rounded uppercase">{tc.status || 'NEW'}</span>
+                         </div>
                       </div>
-                      <div className="p-6 space-y-4">
+                      <div className="p-6 space-y-6">
+                        {/* Inline Editable Fields */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pb-6 border-b border-slate-100">
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Method</label>
+                            <select 
+                              value={tc.method || batchMethod}
+                              onChange={(e) => updateTestCase(tc.id, { method: e.target.value })}
+                              className="w-full h-8 px-2 bg-slate-50 border border-slate-200 rounded text-xs font-bold outline-none focus:border-emerald-500"
+                            >
+                              <option value="Manual">Manual</option>
+                              <option value="Automate">Automate</option>
+                            </select>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Status</label>
+                            <select 
+                              value={tc.status || batchStatus}
+                              onChange={(e) => updateTestCase(tc.id, { status: e.target.value })}
+                              className="w-full h-8 px-2 bg-slate-50 border border-slate-200 rounded text-xs font-bold outline-none focus:border-emerald-500"
+                            >
+                              <option value="New">New</option>
+                              <option value="In review">In review</option>
+                              <option value="Approved">Approved</option>
+                              <option value="Retired">Retired</option>
+                            </select>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Priority</label>
+                            <select 
+                              value={tc.priority || batchPriority}
+                              onChange={(e) => updateTestCase(tc.id, { priority: e.target.value })}
+                              className="w-full h-8 px-2 bg-slate-50 border border-slate-200 rounded text-xs font-bold outline-none focus:border-emerald-500"
+                            >
+                              <option value="Low">Low</option>
+                              <option value="Medium">Medium</option>
+                              <option value="High">High</option>
+                            </select>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Type</label>
+                            <select 
+                              value={tc.type || batchType}
+                              onChange={(e) => updateTestCase(tc.id, { type: e.target.value })}
+                              className="w-full h-8 px-2 bg-slate-50 border border-slate-200 rounded text-xs font-bold outline-none focus:border-emerald-500"
+                            >
+                              <option value="Functional">Functional</option>
+                              <option value="Performance">Performance</option>
+                            </select>
+                          </div>
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                            <div className="space-y-6">
                              <div>
@@ -577,12 +635,15 @@ Notes: ${selectedIssue.notes || 'N/A'}
                                  {tc.preconditions.map((p, i) => <li key={i} className="text-sm font-medium text-slate-600 flex items-center space-x-2"><div className="w-1.5 h-1.5 bg-emerald-400 rounded-full" /> <span>{p}</span></li>)}
                                </ul>
                              </div>
-                             {tc.testData && (
+                             {tc.testData !== undefined && (
                                <div>
                                  <h5 className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-3">Test Data</h5>
-                                 <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg text-xs font-bold text-amber-900">
-                                   {typeof tc.testData === 'string' ? tc.testData : JSON.stringify(tc.testData, null, 2)}
-                                 </div>
+                                 <textarea 
+                                   value={typeof tc.testData === 'string' ? tc.testData : JSON.stringify(tc.testData, null, 2)}
+                                   onChange={(e) => updateTestCase(tc.id, { testData: e.target.value })}
+                                   className="w-full h-24 p-3 bg-amber-50 border border-amber-100 rounded-lg text-xs font-bold text-amber-900 outline-none focus:border-amber-300 resize-none"
+                                   placeholder="Enter test data required..."
+                                 />
                                </div>
                              )}
                            </div>
