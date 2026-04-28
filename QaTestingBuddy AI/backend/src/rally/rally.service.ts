@@ -114,7 +114,7 @@ export class RallyService {
             "Priority": tc.priority || "Medium",
             "Method": tc.method === 'Automate' ? 'Automated' : (tc.method || 'Manual'),
             "Type": tc.type || 'Functional',
-            "Automate": tc.method === 'Automate' ? 'Automated' : 'None'
+            "c_Automate": tc.method === 'Automate' ? 'Yes' : 'No'
           }
         };
 
