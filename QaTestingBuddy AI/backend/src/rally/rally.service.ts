@@ -103,6 +103,23 @@ export class RallyService {
           ${tc.steps?.map((s: any, i: number) => `${i+1}. ${s.action} -> Expected: ${s.expectedResult}`).join('<br/>') || 'No steps provided'}
         `;
 
+        // Resolve Test Folder Ref if provided
+        let testFolderRef = null;
+        if (tc.testFolder) {
+          try {
+            const folderUrl = `${baseUrl}/slm/webservice/v2.0/testfolder?query=(Name = "${tc.testFolder}")&fetch=FormattedID`;
+            const folderRes = await axios.get(folderUrl, { headers });
+            const folder = folderRes.data?.QueryResult?.Results?.[0];
+            if (folder) {
+              testFolderRef = folder._ref;
+            } else {
+              errors.push(`Warning: Test Folder "${tc.testFolder}" not found in Rally. It will not be linked.`);
+            }
+          } catch (err) {
+             console.error("Failed to fetch TestFolder ref");
+          }
+        }
+
         // 3. Prepare payload with Linking
         const payload: any = {
           "TestCase": {
@@ -118,9 +135,10 @@ export class RallyService {
           }
         };
 
-        // Link to project and story if available
+        // Link to project, story, and folder if available
         if (storyRef) payload.TestCase.WorkProduct = storyRef;
         if (projectRef) payload.TestCase.Project = projectRef;
+        if (testFolderRef) payload.TestCase.TestFolder = testFolderRef;
 
         const createUrl = `${baseUrl}${RALLY_API.testCaseCreate}`;
         const response = await axios.post(createUrl, payload, { headers });
