@@ -103,11 +103,12 @@ export class RallyService {
           ${tc.steps?.map((s: any, i: number) => `${i+1}. ${s.action} -> Expected: ${s.expectedResult}`).join('<br/>') || 'No steps provided'}
         `;
 
-        // Resolve Test Folder Ref if provided
         let testFolderRef = null;
         if (tc.testFolder) {
           try {
-            const folderUrl = `${baseUrl}/slm/webservice/v2.0/testfolder?query=(Name = "${tc.testFolder}")&fetch=FormattedID`;
+            // Search by Name, FormattedID (e.g., TF123), or ObjectID. Adding project=null and scopes to search entire workspace.
+            const queryStr = `(((Name = "${tc.testFolder}") OR (FormattedID = "${tc.testFolder}")) OR (ObjectID = "${tc.testFolder}"))`;
+            const folderUrl = `${baseUrl}/slm/webservice/v2.0/testfolder?query=${encodeURIComponent(queryStr)}&fetch=FormattedID&project=null&projectScopeUp=true&projectScopeDown=true`;
             const folderRes = await axios.get(folderUrl, { headers });
             const folder = folderRes.data?.QueryResult?.Results?.[0];
             if (folder) {
