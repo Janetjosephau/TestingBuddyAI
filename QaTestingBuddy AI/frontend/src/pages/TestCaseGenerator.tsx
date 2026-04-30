@@ -484,27 +484,6 @@ Notes: ${selectedIssue.notes || 'N/A'}
                     </div>
                   </div>
 
-                  <div className="bg-white border-2 border-slate-100 rounded-3xl p-6 grid grid-cols-1 md:grid-cols-2 gap-6 shadow-sm">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Work Product</label>
-                      <input 
-                        type="text"
-                        value={batchWorkProduct}
-                        onChange={(e) => setBatchWorkProduct(e.target.value)}
-                        className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-emerald-500 transition-all"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Test Folder</label>
-                      <input 
-                        type="text"
-                        value={batchTestFolder}
-                        onChange={(e) => setBatchTestFolder(e.target.value)}
-                        placeholder="Folder path or ID (e.g. TF5375)..."
-                        className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-emerald-500 transition-all"
-                      />
-                    </div>
-                  </div>
 
                   <div className="grid grid-cols-1 gap-6">
                     {generatedTestCases.map((tc, idx) => (
@@ -637,6 +616,28 @@ Notes: ${selectedIssue.notes || 'N/A'}
                       ⚠️ No test cases selected. Please go back to the Review tab to select cases to sync.
                     </div>
                   )}
+
+                  <div className="bg-slate-50 border-2 border-slate-100 rounded-3xl p-8 grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Target Work Product (Story ID)</label>
+                      <input 
+                        type="text"
+                        value={batchWorkProduct}
+                        onChange={(e) => setBatchWorkProduct(e.target.value)}
+                        className="w-full h-12 px-4 bg-white border border-slate-200 rounded-xl font-bold text-base outline-none focus:border-emerald-500 transition-all shadow-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Target Test Folder (ID or Name)</label>
+                      <input 
+                        type="text"
+                        value={batchTestFolder}
+                        onChange={(e) => setBatchTestFolder(e.target.value)}
+                        placeholder="e.g. TF5375"
+                        className="w-full h-12 px-4 bg-white border border-slate-200 rounded-xl font-bold text-base outline-none focus:border-emerald-500 transition-all shadow-sm"
+                      />
+                    </div>
+                  </div>
 
                   {syncResult && (
                     <div className={`p-6 rounded-2xl border-2 ${syncResult.success ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-red-50 border-red-100 text-red-800'}`}>
