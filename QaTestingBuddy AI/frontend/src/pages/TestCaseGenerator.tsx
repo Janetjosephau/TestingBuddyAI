@@ -60,6 +60,7 @@ const TestCaseGenerator: React.FC = () => {
 
   // Batch Edit Fields
   const [batchWorkProduct, setBatchWorkProduct] = useState('')
+  const [batchTestFolder, setBatchTestFolder] = useState('')
 
   useEffect(() => {
     loadPrerequisites()
