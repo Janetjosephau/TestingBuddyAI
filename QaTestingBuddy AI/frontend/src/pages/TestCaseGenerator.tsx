@@ -267,7 +267,8 @@ Notes: ${selectedIssue.notes || 'N/A'}
         status: tc.status || 'New',
         priority: tc.priority || 'Medium',
         type: tc.type || 'Functional',
-        workProduct: tc.workProduct || batchWorkProduct
+        workProduct: tc.workProduct || batchWorkProduct,
+        testFolder: tc.testFolder || batchTestFolder
       }))
 
     if (toUpload.length === 0) {
