@@ -74,20 +74,33 @@ export class RallyService {
     const uploadedCount = [];
     const errors = [];
 
-    // 1. Fetch the Story Reference to link the test cases
+    // 1. Fetch the Story Reference and Workspace
     let storyRef = null;
     let projectRef = null;
+    let workspaceRef = null;
+    let autoTestFolderRef = null;
 
     if (storyKey) {
       try {
-        const storyUrl = `${baseUrl}${RALLY_API.userStory}?query=(${RALLY_FIELD_MAP.key} = "${storyKey}")&fetch=Project`;
+        const storyUrl = `${baseUrl}${RALLY_API.userStory}?query=(${RALLY_FIELD_MAP.key} = "${storyKey}")&fetch=Project,Workspace`;
         const storyRes = await axios.get(storyUrl, { headers });
         const story = storyRes.data?.QueryResult?.Results?.[0];
         if (story) {
           storyRef = story._ref;
           projectRef = story.Project?._ref;
+          workspaceRef = story.Workspace?._ref;
+
+          // SMART FOLDER: Try to find a folder from existing test cases in this story
+          try {
+            const tcUrl = `${baseUrl}${RALLY_API.testCase}?query=(WorkProduct = "${storyRef}")&fetch=TestFolder&pagesize=1`;
+            const tcRes = await axios.get(tcUrl, { headers });
+            const existingTC = tcRes.data?.QueryResult?.Results?.[0];
+            if (existingTC?.TestFolder) {
+              autoTestFolderRef = existingTC.TestFolder._ref;
+            }
+          } catch (diagErr) { /* ignore */ }
         } else {
-          errors.push(`Warning: Story ${storyKey} not found in Rally. Test cases will be created but not linked to this story.`);
+          errors.push(`Warning: Story ${storyKey} not found in Rally.`);
         }
       } catch (err: any) {
         errors.push(`Failed to fetch story ${storyKey}: ${err.message}`);
@@ -96,6 +109,26 @@ export class RallyService {
 
     for (const tc of testCases) {
       try {
+        // Resolve Test Folder Ref
+        let testFolderRef = autoTestFolderRef;
+        if (tc.testFolder) {
+          try {
+            // Search globally across the workspace using the story's workspace ref
+            const queryStr = `((Name = "${tc.testFolder}") OR (FormattedID = "${tc.testFolder}"))`;
+            const folderUrl = `${baseUrl}/slm/webservice/v2.0/testfolder?query=${encodeURIComponent(queryStr)}&fetch=FormattedID&workspace=${workspaceRef || 'null'}&project=null&projectScopeUp=true&projectScopeDown=true`;
+            const folderRes = await axios.get(folderUrl, { headers });
+            const folder = folderRes.data?.QueryResult?.Results?.[0];
+            
+            if (folder) {
+              testFolderRef = folder._ref;
+            } else {
+              errors.push(`Warning: Test Folder "${tc.testFolder}" not found in your Rally workspace.`);
+            }
+          } catch (err) {
+             console.error("Folder resolution failed", err);
+          }
+        }
+
         // 2. Format the description from steps
         const description = `
           <b>Preconditions:</b><br/>${tc.preconditions?.join('<br/>') || 'None'}<br/><br/>
