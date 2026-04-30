@@ -113,9 +113,15 @@ export class RallyService {
         let testFolderRef = autoTestFolderRef;
         if (tc.testFolder) {
           try {
-            // Search globally across the workspace using the story's workspace ref
+            // First, try to find the 'QA Test Management' project to use as a scope
+            const projectUrl = `${baseUrl}/slm/webservice/v2.0/project?query=(Name = "QA Test Management")&fetch=ObjectID`;
+            const projectRes = await axios.get(projectUrl, { headers });
+            const qaProject = projectRes.data?.QueryResult?.Results?.[0];
+            const projectScope = qaProject ? `&project=${qaProject._ref}&projectScopeDown=true` : '&project=null&projectScopeUp=true&projectScopeDown=true';
+
+            // Search globally across the workspace using the scoped project or global workspace
             const queryStr = `((Name = "${tc.testFolder}") OR (FormattedID = "${tc.testFolder}"))`;
-            const folderUrl = `${baseUrl}/slm/webservice/v2.0/testfolder?query=${encodeURIComponent(queryStr)}&fetch=FormattedID&workspace=${workspaceRef || 'null'}&project=null&projectScopeUp=true&projectScopeDown=true`;
+            const folderUrl = `${baseUrl}/slm/webservice/v2.0/testfolder?query=${encodeURIComponent(queryStr)}&fetch=FormattedID&workspace=${workspaceRef || 'null'}${projectScope}`;
             const folderRes = await axios.get(folderUrl, { headers });
             const folder = folderRes.data?.QueryResult?.Results?.[0];
             
