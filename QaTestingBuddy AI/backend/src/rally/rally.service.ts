@@ -8,7 +8,7 @@ import { RALLY_FETCH_FIELDS, RALLY_FIELD_MAP, RALLY_API } from './rally.constant
 
 @Injectable()
 export class RallyService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async testConnection(dto: TestRallyConnectionDto) {
     const { instanceUrl, apiKey } = dto;
@@ -58,11 +58,11 @@ export class RallyService {
 
   async uploadTestCases(dto: UploadToRallyDto) {
     const { rallyConfigId, testCases, storyKey } = dto;
-    
-    const config = rallyConfigId 
+
+    const config = rallyConfigId
       ? await this.prisma.rallyConfig.findUnique({ where: { id: rallyConfigId } })
       : await this.prisma.rallyConfig.findFirst();
-    
+
     if (!config) throw new NotFoundException('Rally configuration not found');
 
     const baseUrl = config.instanceUrl.replace(/\/$/, '');
@@ -100,7 +100,7 @@ export class RallyService {
         const description = `
           <b>Preconditions:</b><br/>${tc.preconditions?.join('<br/>') || 'None'}<br/><br/>
           <b>Steps:</b><br/>
-          ${tc.steps?.map((s: any, i: number) => `${i+1}. ${s.action} -> Expected: ${s.expectedResult}`).join('<br/>') || 'No steps provided'}
+          ${tc.steps?.map((s: any, i: number) => `${i + 1}. ${s.action} -> Expected: ${s.expectedResult}`).join('<br/>') || 'No steps provided'}
         `;
 
         // 3. Prepare payload with Linking
@@ -136,8 +136,8 @@ export class RallyService {
       success: errors.length === 0,
       uploadedCount: uploadedCount.length,
       total: testCases.length,
-      message: errors.length === 0 
-        ? `Successfully uploaded ${uploadedCount.length} test cases to Rally!` 
+      message: errors.length === 0
+        ? `Successfully uploaded ${uploadedCount.length} test cases to Rally!`
         : `Uploaded ${uploadedCount.length} cases but encountered ${errors.length} errors.`,
       errors: errors.length > 0 ? errors : undefined
     };
@@ -145,10 +145,10 @@ export class RallyService {
 
   async fetchRequirements(data: { query: string, rallyConfigId?: string }) {
     const { query, rallyConfigId } = data;
-    const config = rallyConfigId 
+    const config = rallyConfigId
       ? await this.prisma.rallyConfig.findUnique({ where: { id: rallyConfigId } })
       : await this.prisma.rallyConfig.findFirst();
-      
+
     if (!config) throw new NotFoundException('Rally configuration not found');
 
     const baseUrl = config.instanceUrl.replace(/\/$/, '');
@@ -156,26 +156,26 @@ export class RallyService {
       'zsessionid': config.apiKey,
       'Accept': 'application/json',
     };
-    
+
     // Example query: (FormattedID = "US31488")
     const apiQuery = query.includes('=') ? query : `(${RALLY_FIELD_MAP.key} = "${query}")`;
     const url = `${baseUrl}${RALLY_API.userStory}?query=${encodeURIComponent(apiQuery)}&fetch=${RALLY_FETCH_FIELDS}`;
-    
+
     try {
       const response = await axios.get(url, { headers });
       const results = response.data?.QueryResult?.Results || [];
-      
+
       const formatted = results.map(story => ({
-        key:           story[RALLY_FIELD_MAP.key],
-        title:         story[RALLY_FIELD_MAP.title] || story[RALLY_FIELD_MAP.titleFallback],
-        description:   story[RALLY_FIELD_MAP.description] || '',
-        notes:         story[RALLY_FIELD_MAP.notes] || '',
-        requirements:  story[RALLY_FIELD_MAP.requirements] || '',
-        issueType:     RALLY_FIELD_MAP.issueType,
-        status:        story[RALLY_FIELD_MAP.status] || RALLY_FIELD_MAP.statusDefault,
-        priority:      story[RALLY_FIELD_MAP.priority]?.Name || RALLY_FIELD_MAP.priorityDefault
+        key: story[RALLY_FIELD_MAP.key],
+        title: story[RALLY_FIELD_MAP.title] || story[RALLY_FIELD_MAP.titleFallback],
+        description: story[RALLY_FIELD_MAP.description] || '',
+        notes: story[RALLY_FIELD_MAP.notes] || '',
+        requirements: story[RALLY_FIELD_MAP.requirements] || '',
+        issueType: RALLY_FIELD_MAP.issueType,
+        status: story[RALLY_FIELD_MAP.status] || RALLY_FIELD_MAP.statusDefault,
+        priority: story[RALLY_FIELD_MAP.priority]?.Name || RALLY_FIELD_MAP.priorityDefault
       }));
-      
+
       return { success: true, requirements: formatted };
     } catch (error: any) {
       const errMsg = error.response?.data?.errors?.[0] || error.response?.statusText || error.message;
