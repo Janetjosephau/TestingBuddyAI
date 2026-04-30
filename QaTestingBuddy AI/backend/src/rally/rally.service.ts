@@ -103,32 +103,11 @@ export class RallyService {
           ${tc.steps?.map((s: any, i: number) => `${i+1}. ${s.action} -> Expected: ${s.expectedResult}`).join('<br/>') || 'No steps provided'}
         `;
 
-        let testFolderRef = null;
-        if (tc.testFolder) {
-          try {
-            // Search by Name, FormattedID (e.g., TF123), or ObjectID. Adding project=null and scopes to search entire workspace.
-            const queryStr = `(((Name = "${tc.testFolder}") OR (FormattedID = "${tc.testFolder}")) OR (ObjectID = "${tc.testFolder}"))`;
-            const folderUrl = `${baseUrl}/slm/webservice/v2.0/testfolder?query=${encodeURIComponent(queryStr)}&fetch=FormattedID&project=null&projectScopeUp=true&projectScopeDown=true`;
-            const folderRes = await axios.get(folderUrl, { headers });
-            const folder = folderRes.data?.QueryResult?.Results?.[0];
-            if (folder) {
-              testFolderRef = folder._ref;
-            } else {
-              errors.push(`Warning: Test Folder "${tc.testFolder}" not found in Rally. It will not be linked.`);
-            }
-          } catch (err) {
-             console.error("Failed to fetch TestFolder ref");
-          }
-        }
-
         // 3. Prepare payload with Linking
         const payload: any = {
           "TestCase": {
             "Name": tc.title || "AI Generated Test Case",
-            "Description": `
-              ${tc.testFolder ? `<b>Test Folder:</b> ${tc.testFolder}<br/><br/>` : ''}
-              ${description}
-            `.trim(),
+            "Description": description.trim(),
             "Priority": tc.priority || "Medium",
             "Method": tc.method === 'Automate' ? 'Automated' : (tc.method || 'Manual'),
             "Type": tc.type || 'Functional',
@@ -136,10 +115,9 @@ export class RallyService {
           }
         };
 
-        // Link to project, story, and folder if available
+        // Link to project and story if available
         if (storyRef) payload.TestCase.WorkProduct = storyRef;
         if (projectRef) payload.TestCase.Project = projectRef;
-        if (testFolderRef) payload.TestCase.TestFolder = testFolderRef;
 
         const createUrl = `${baseUrl}${RALLY_API.testCaseCreate}`;
         const response = await axios.post(createUrl, payload, { headers });

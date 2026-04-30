@@ -21,7 +21,6 @@ interface TestCase {
   method?: string
   type?: string
   workProduct?: string
-  testFolder?: string
 }
 
 interface RallyRequirement {
@@ -61,7 +60,6 @@ const TestCaseGenerator: React.FC = () => {
 
   // Batch Edit Fields
   const [batchWorkProduct, setBatchWorkProduct] = useState('')
-  const [batchTestFolder, setBatchTestFolder] = useState('')
 
   useEffect(() => {
     loadPrerequisites()
@@ -269,8 +267,7 @@ Notes: ${selectedIssue.notes || 'N/A'}
         status: tc.status || 'New',
         priority: tc.priority || 'Medium',
         type: tc.type || 'Functional',
-        workProduct: tc.workProduct || batchWorkProduct,
-        testFolder: tc.testFolder || batchTestFolder
+        workProduct: tc.workProduct || batchWorkProduct
       }))
 
     if (toUpload.length === 0) {
@@ -487,23 +484,13 @@ Notes: ${selectedIssue.notes || 'N/A'}
                   </div>
                 </div>
 
-                <div className="bg-white border-2 border-slate-100 rounded-3xl p-6 grid grid-cols-1 md:grid-cols-2 gap-6 shadow-sm">
+                <div className="bg-white border-2 border-slate-100 rounded-3xl p-6 grid grid-cols-1 gap-6 shadow-sm">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Work Product</label>
                     <input 
                       type="text"
                       value={batchWorkProduct}
                       onChange={(e) => setBatchWorkProduct(e.target.value)}
-                      className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-emerald-500 transition-all"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Test Folder</label>
-                    <input 
-                      type="text"
-                      value={batchTestFolder}
-                      onChange={(e) => setBatchTestFolder(e.target.value)}
-                      placeholder="Folder path..."
                       className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-emerald-500 transition-all"
                     />
                   </div>
