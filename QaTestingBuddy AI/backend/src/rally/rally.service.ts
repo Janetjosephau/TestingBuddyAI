@@ -154,9 +154,10 @@ export class RallyService {
           }
         };
 
-        // Link to project and story if available
-        if (storyRef) payload.TestCase.WorkProduct = storyRef;
-        if (projectRef) payload.TestCase.Project = projectRef;
+        // Link to project, story, and folder if available
+        if (storyRef) payload.TestCase.WorkProduct = { _ref: storyRef };
+        if (projectRef) payload.TestCase.Project = { _ref: projectRef };
+        if (testFolderRef) payload.TestCase.TestFolder = { _ref: testFolderRef };
 
         const createUrl = `${baseUrl}${RALLY_API.testCaseCreate}`;
         const response = await axios.post(createUrl, payload, { headers });
