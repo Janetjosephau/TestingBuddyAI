@@ -117,7 +117,7 @@ const RallyIntegration: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] p-12">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden p-12">
           {/* Header */}
           <div className="flex items-center space-x-4 mb-10">
@@ -186,14 +186,15 @@ const RallyIntegration: React.FC = () => {
               <button
                 onClick={handleTestConnection}
                 disabled={testing}
-                className="flex-1 h-14 bg-white border-2 border-slate-100 text-slate-700 rounded-2xl font-black hover:bg-slate-50 transition-all disabled:opacity-50"
+                className="flex-1 h-14 bg-emerald-500 text-white rounded-2xl font-black hover:bg-emerald-600 transition-all disabled:opacity-50 shadow-lg shadow-emerald-100 flex items-center justify-center space-x-3"
               >
-                {testing ? 'Checking...' : 'Test Connection'}
+                <RefreshCw size={20} className={testing ? 'animate-spin' : ''} />
+                <span>{testing ? 'Checking...' : 'Test Connection'}</span>
               </button>
               <button
                 onClick={handleSaveConfiguration}
                 disabled={loading}
-                className="flex-1 h-14 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center space-x-3"
+                className="flex-1 h-14 bg-emerald-500 text-white rounded-2xl font-black hover:bg-emerald-600 shadow-lg shadow-emerald-100 transition-all disabled:opacity-50 flex items-center justify-center space-x-3"
               >
                 <Save size={20} />
                 <span>Save Connection</span>

@@ -284,7 +284,7 @@ const LLMConfiguration: React.FC = () => {
               <button
                 onClick={handleSaveConfiguration}
                 disabled={loading}
-                className="flex-1 h-14 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all flex items-center justify-center space-x-3"
+                className="flex-1 h-14 bg-emerald-500 text-white rounded-2xl font-black hover:bg-emerald-600 shadow-lg shadow-emerald-100 transition-all disabled:opacity-50 flex items-center justify-center space-x-3"
               >
                 <Save size={20} />
                 <span>{editingId ? 'Update Connection' : 'Save Connection'}</span>

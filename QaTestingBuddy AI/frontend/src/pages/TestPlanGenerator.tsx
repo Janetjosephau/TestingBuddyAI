@@ -261,7 +261,7 @@ Additional Context: ${additionalContext || 'N/A'}
               <button
                 onClick={handleGenerateTestPlan}
                 disabled={generating}
-                className="flex-1 h-14 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all flex items-center justify-center space-x-3 disabled:opacity-50"
+                className="flex-1 h-14 bg-emerald-500 text-white rounded-2xl font-black hover:bg-emerald-600 transition-all disabled:opacity-50 shadow-lg shadow-emerald-100 flex items-center justify-center space-x-3"
               >
                 <Zap size={22} className="fill-current" />
                 <span>{generating ? 'Generating...' : 'Generate Test Plan'}</span>
