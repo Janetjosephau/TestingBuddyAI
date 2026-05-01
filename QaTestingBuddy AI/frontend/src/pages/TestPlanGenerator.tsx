@@ -187,8 +187,8 @@ Additional Context: ${additionalContext || 'N/A'}
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] p-12">
-      <div className="max-w-5xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#f8fafc] p-8 md:p-12">
+      <div className="max-w-6xl mx-auto space-y-8">
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden p-12">
           {/* Header */}
           <div className="flex items-center space-x-4 mb-10">

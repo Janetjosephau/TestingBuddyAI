@@ -180,8 +180,8 @@ const LLMConfiguration: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] p-12">
-      <div className="max-w-5xl mx-auto space-y-12">
+    <div className="min-h-screen bg-[#f8fafc] p-8 md:p-12">
+      <div className="max-w-6xl mx-auto space-y-12">
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden">
           {/* Header */}
           <div className="p-10 pb-0 flex items-start space-x-4">
