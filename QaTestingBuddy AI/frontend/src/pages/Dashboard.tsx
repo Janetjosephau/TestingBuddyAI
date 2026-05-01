@@ -167,8 +167,8 @@ const Dashboard: React.FC = () => {
           {/* Quick Launches Sidebar */}
           <div className="space-y-8">
             <h2 className="text-2xl font-black text-[#0f172a]">Quick Launch</h2>
-            <div className="space-y-4">
-              <Link to="/generator/test-plan" className="block p-6 bg-emerald-600 border-2 border-emerald-500 rounded-3xl hover:bg-emerald-700 transition-all group shadow-lg shadow-emerald-600/10">
+            <div className="space-y-4 w-3/4">
+              <Link to="/generator/test-plan" className="block p-6 bg-emerald-500 border-2 border-emerald-400 rounded-3xl hover:bg-emerald-600 transition-all group shadow-lg shadow-emerald-100">
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-white">
                     <FileText size={20} />
@@ -179,7 +179,7 @@ const Dashboard: React.FC = () => {
                 <p className="text-emerald-50 text-sm font-medium">Generate comprehensive plans from Rally stories.</p>
               </Link>
 
-              <Link to="/generator/test-case" className="block p-6 bg-emerald-600 border-2 border-emerald-500 rounded-3xl hover:bg-emerald-700 transition-all group shadow-lg shadow-emerald-600/10">
+              <Link to="/generator/test-case" className="block p-6 bg-emerald-500 border-2 border-emerald-400 rounded-3xl hover:bg-emerald-600 transition-all group shadow-lg shadow-emerald-100">
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-white">
                     <BarChart3 size={20} />
@@ -190,7 +190,7 @@ const Dashboard: React.FC = () => {
                 <p className="text-emerald-50 text-sm font-medium">Create test cases with AI precision.</p>
               </Link>
               
-              <div className="p-8 bg-emerald-600 border-2 border-emerald-500 rounded-3xl text-white relative overflow-hidden shadow-lg shadow-emerald-600/10">
+              <div className="p-8 bg-emerald-500 border-2 border-emerald-400 rounded-3xl text-white relative overflow-hidden shadow-lg shadow-emerald-100">
                  <Zap size={80} className="absolute -right-4 -bottom-4 text-white/10 rotate-12" />
                  <h4 className="font-black text-xl mb-2 relative z-10">AI Power Tip</h4>
                  <p className="text-emerald-50 text-sm font-medium relative z-10 leading-relaxed">
