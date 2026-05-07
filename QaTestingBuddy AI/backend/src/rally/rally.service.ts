@@ -124,14 +124,14 @@ export class RallyService {
             const folderUrl = `${baseUrl}/slm/webservice/v2.0/testfolder?query=${encodeURIComponent(queryStr)}&fetch=FormattedID&workspace=${workspaceRef || 'null'}${projectScope}`;
             const folderRes = await axios.get(folderUrl, { headers });
             const folder = folderRes.data?.QueryResult?.Results?.[0];
-            
+
             if (folder) {
               testFolderRef = folder._ref;
             } else {
               errors.push(`Warning: Test Folder "${tc.testFolder}" not found in your Rally workspace.`);
             }
           } catch (err) {
-             console.error("Folder resolution failed", err);
+            console.error("Folder resolution failed", err);
           }
         }
 

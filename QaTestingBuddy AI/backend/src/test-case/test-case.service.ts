@@ -9,9 +9,9 @@ import { parseRobustJson } from '../utils/json-parser';
 @Injectable()
 export class TestCaseService {
   constructor(
-     private readonly prisma: PrismaService,
-     private readonly llmService: LlmService,
-  ) {}
+    private readonly prisma: PrismaService,
+    private readonly llmService: LlmService,
+  ) { }
 
   async generateTestCases(dto: GenerateTestCasesDto) {
     const { testPlanId, llmConfigId, additionalInstructions, requirementBody } = dto;
@@ -45,9 +45,10 @@ You may ONLY use information explicitly provided in:
 
     const prompt = `
       You are an expert QA Automation Engineer. ${antiHallucinationRule}
-      Generate comprehensive test cases based on the following requirement:
       
-      REQUIREMENT:
+      CRITICAL INSTRUCTION: You MUST read the REQUIREMENT block below very carefully. Do NOT generate generic test cases. Every single test case you generate MUST directly map to a specific sentence or Acceptance Criteria mentioned in the REQUIREMENT. If the requirement is short, generate fewer test cases. Do NOT invent scenarios that are not explicitly or implicitly demanded by the requirement.
+      
+      REQUIREMENT TO TEST:
       ${requirementBody || 'No requirement details provided.'}
 
       USER INSTRUCTIONS:
@@ -56,11 +57,13 @@ You may ONLY use information explicitly provided in:
       Return ONLY a JSON array of objects. Each object MUST have this structure:
       {
         "caseId": "TC-001",
-        "title": "Short descriptive title",
+        "title": "Short descriptive title explicitly referencing the requirement",
         "preconditions": ["List of strings"],
-        "steps": [{"action": "string", "expectedResult": "string"}],
+        "steps": [
+          { "action": "Step action", "expectedResult": "Expected result matching the requirement" }
+        ],
         "postconditions": ["List of strings"],
-        "priority": "Medium", // "Low", "Medium", "High"
+        "priority": "High",
         "testData": "JSON string or description of data required"
       }
       
@@ -69,7 +72,7 @@ You may ONLY use information explicitly provided in:
 
     try {
       const resultText = await this.llmService.generateText(prompt, llmConfigId);
-      
+
       const generatedCases = parseRobustJson(resultText);
 
       const savedCases = [];
@@ -88,7 +91,7 @@ You may ONLY use information explicitly provided in:
             status: 'New',
           }
         });
-        
+
         savedCases.push({
           ...saved,
           preconditions: JSON.parse(saved.preconditions),
@@ -113,12 +116,12 @@ You may ONLY use information explicitly provided in:
     let plan = await this.prisma.testPlan.findFirst({
       where: { name: 'Ad-hoc Generated Plan' }
     });
-    
+
     if (!plan) {
       // Need an LLM config for relation
       const llm = await this.prisma.lLMConfig.findFirst();
       if (!llm) throw new BadRequestException('No LLM configuration found. Please create one first.');
-      
+
       plan = await this.prisma.testPlan.create({
         data: {
           name: 'Ad-hoc Generated Plan',

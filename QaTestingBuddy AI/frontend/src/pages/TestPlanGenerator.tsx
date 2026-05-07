@@ -106,15 +106,17 @@ const TestPlanGenerator: React.FC = () => {
 
     setGenerating(true)
     try {
+      const stripHtml = (html: string) => html ? html.replace(/<[^>]*>?/gm, '').trim() : 'N/A';
+      
       const res = await generatorApi.generateTestPlan({
         jiraIssueId: selectedIssue?.key || 'MANUAL',
         jiraRequirement: selectedIssue ? JSON.stringify(selectedIssue) : undefined,
         llmConfigId: selectedLlmConfigId || llmConfigs[0]?.id,
         context: `
 Title: ${selectedIssue?.title || 'N/A'}
-Description: ${selectedIssue?.description || 'N/A'}
-Requirements: ${selectedIssue?.requirements || 'N/A'}
-Notes: ${selectedIssue?.notes || 'N/A'}
+Description: ${stripHtml(selectedIssue?.description)}
+Requirements: ${stripHtml(selectedIssue?.requirements)}
+Notes: ${stripHtml(selectedIssue?.notes)}
 Additional Context: ${additionalContext || 'N/A'}
 `.trim()
       })

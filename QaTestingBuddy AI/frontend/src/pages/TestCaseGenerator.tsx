@@ -121,15 +121,17 @@ const TestCaseGenerator: React.FC = () => {
     setGenerating(true)
     setErrorModal(null)
     try {
+      const stripHtml = (html: string) => html ? html.replace(/<[^>]*>?/gm, '').trim() : 'N/A';
+      
       const res = await generatorApi.generateTestCases({
         testPlanId: 'manual-gen',
         llmConfigId: selectedLlmId,
         additionalInstructions: additionalContext,
         requirementBody: `
 Title: ${selectedIssue.title}
-Description: ${selectedIssue.description || 'N/A'}
-Requirements: ${selectedIssue.requirements || 'N/A'}
-Notes: ${selectedIssue.notes || 'N/A'}
+Description: ${stripHtml(selectedIssue.description)}
+Requirements: ${stripHtml(selectedIssue.requirements)}
+Notes: ${stripHtml(selectedIssue.notes)}
 `.trim()
       })
 
@@ -622,7 +624,7 @@ Notes: ${selectedIssue.notes || 'N/A'}
                   <div className="bg-slate-50 border-2 border-slate-100 rounded-3xl p-8 grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Target Work Product (Story ID)</label>
-                      <input 
+                      <input
                         type="text"
                         value={batchWorkProduct}
                         onChange={(e) => setBatchWorkProduct(e.target.value)}
@@ -631,7 +633,7 @@ Notes: ${selectedIssue.notes || 'N/A'}
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Target Test Folder (ID or Name)</label>
-                      <input 
+                      <input
                         type="text"
                         value={batchTestFolder}
                         onChange={(e) => setBatchTestFolder(e.target.value)}

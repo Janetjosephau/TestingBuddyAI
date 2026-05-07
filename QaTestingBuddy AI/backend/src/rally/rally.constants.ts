@@ -28,7 +28,7 @@ export const RALLY_FETCH_FIELDS = [
   // 'Iteration',     // Sprint/Iteration the story belongs to
   // 'Release',       // Release the story is targeted for
   // 'Tags',          // Tags / labels on the story
-  // 'c_AcceptanceCriteria', // Custom field: Acceptance Criteria (if configured in Rally)
+  'c_AcceptanceCriteria', // Custom field: Acceptance Criteria (if configured in Rally)
 ].join(',')
 
 // ─────────────────────────────────────────────
@@ -43,6 +43,7 @@ export const RALLY_FIELD_MAP = {
   description:   'Description',       // Story description
   notes:         'Notes',             // Additional notes
   requirements:  'c_Requirements',    // Custom requirements section
+  acceptanceCriteria: 'c_AcceptanceCriteria', // Acceptance Criteria
   status:        'ScheduleState',     // Workflow state
   statusDefault: 'Defined',           // Default if ScheduleState is missing
   priority:      'Priority',          // Priority object (access .Name on it)
